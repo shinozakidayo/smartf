@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Google Maps API ver 3 Sample/グーグルマップAPIサンプル/Google Maps API样品</title>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0&sensor=false" type="text/javascript"></script>
+</head>
+<body>
+<div id="gmap" style="width: 800px; height: 600px;"></div>
+<script type="text/javascript">
+var lat = 35.689160610317174;
+var lng = 139.70083951950073;
+var map = new google.maps.Map(
+document.getElementById("gmap"),{
+zoom : 10,
+center : new google.maps.LatLng(lat, lng),
+mapTypeId : google.maps.MapTypeId.ROADMAP
+}
+);
+var marker = new google.maps.Marker({
+position: new google.maps.LatLng(lat, lng),
+map: map
+});
+var count = 20;
+function moveMarker(){
+lat = lat - 0.01;
+lng = lng + 0.01;
+marker.setPosition(new google.maps.LatLng(lat, lng));
+count = count - 1;
+if (count > 0) {
+setTimeout("moveMarker()", 500);
+}
+}
+moveMarker();	// アニメーション移動開始
+</script>
+</body>
+</html>

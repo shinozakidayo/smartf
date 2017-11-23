@@ -1,0 +1,53 @@
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0"></script>
+<script>
+	$(function(){
+ 
+		var vLat = 37.693489;
+		var vLng = 139.486611;
+		
+		// MAPを生成
+		var map = new google.maps.Map(document.getElementById("map_canvas"), {
+			zoom: 8, // 拡大値
+			center: new google.maps.LatLng(vLat,vLng), // 初期表示の座標
+			mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
+			scaleControl: true,
+			scrollwheel: true // スケールの表示（距離の目安）
+		});
+ 
+		// マーカーの生成
+		var marker = new google.maps.Marker({
+			map: map,
+			position: new google.maps.LatLng( vLat,vLng ),
+	        icon: './bokkuru.png'
+		});
+ 
+		// マップクリックイベントを追加
+		google.maps.event.addListener(map, 'click', function(e)
+		{
+			// マーカーポジションを変更
+			marker.position = e.latLng;
+ 
+			// 緯度経度をフォームにセット
+			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
+			document.getElementById('longitude').value = e.latLng.lng(); // 経度
+ 
+			vLat = e.latLng.lat();
+			vLng = e.latLng.lng();
+
+			// マーカーを再セット
+			marker.setMap(map);
+		});
+		
+	    setInterval(function(){
+	    	console.log("vLat" + vLat);
+			vLat = vLat + 0.02;
+			marker.position = new google.maps.LatLng( vLat,vLng );
+			marker.setMap(map);
+	    },500);
+ 
+	});
+</script>
+<div id="map_canvas" style="width: 500px; height: 400px;"></div>
+<input id="latitude" type="text" />
+<input id="longitude" type="text" />

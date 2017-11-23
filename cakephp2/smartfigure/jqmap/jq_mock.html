@@ -1,0 +1,50 @@
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0"></script>
+<script>
+	$(function(){
+ 
+		var vLat = 36.693489;
+		var vLng = 140.486611;
+		
+		// MAP繧堤函謌�
+		var map = new google.maps.Map(document.getElementById("map_canvas"), {
+			zoom: 8, // 諡｡螟ｧ蛟､
+			center: new google.maps.LatLng(vLat,vLng), // 蛻晄悄陦ｨ遉ｺ縺ｮ蠎ｧ讓�
+			mapTypeId: google.maps.MapTypeId.ROADMAP, // 蝨ｰ蝗ｳ縺ｮ繧ｿ繧､繝�
+			scaleControl: true,
+			scrollwheel: true // 繧ｹ繧ｱ繝ｼ繝ｫ縺ｮ陦ｨ遉ｺ�ｼ郁ｷ晞屬縺ｮ逶ｮ螳会ｼ�
+		});
+ 
+		// 繝槭�ｼ繧ｫ繝ｼ縺ｮ逕滓��
+		var marker = new google.maps.Marker({
+			map: map,
+			position: new google.maps.LatLng( vLat,vLng ),
+	        icon: './bokkuru.png'
+		});
+ 
+		// 繝槭ャ繝励け繝ｪ繝�繧ｯ繧､繝吶Φ繝医ｒ霑ｽ蜉�
+		google.maps.event.addListener(map, 'click', function(e)
+		{
+			// 繝槭�ｼ繧ｫ繝ｼ繝昴ず繧ｷ繝ｧ繝ｳ繧貞､画峩
+			marker.position = e.latLng;
+ 
+			// 邱ｯ蠎ｦ邨悟ｺｦ繧偵ヵ繧ｩ繝ｼ繝�縺ｫ繧ｻ繝�繝�
+			document.getElementById('latitude').value = e.latLng.lat(); // 邱ｯ蠎ｦ
+			document.getElementById('longitude').value = e.latLng.lng(); // 邨悟ｺｦ
+ 
+			// 繝槭�ｼ繧ｫ繝ｼ繧貞�阪そ繝�繝�
+			marker.setMap(map);
+		});
+		
+	    setInterval(function(){
+	    	console.log("vLat" + vLat);
+			vLat = vLat + 0.001;
+			marker.position = new google.maps.LatLng( vLat,vLng );
+			marker.setMap(map);
+	    },500);
+ 
+	});
+</script>
+<div id="map_canvas" style="width: 1600px; height: 1000px;"></div>
+<input id="latitude" type="text" />
+<input id="longitude" type="text" />

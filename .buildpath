@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildpath>
+	<buildpathentry kind="src" path="ajaxtophp"/>
+	<buildpathentry kind="src" path="cakephp"/>
+	<buildpathentry kind="src" path="cakephp2"/>
+	<buildpathentry kind="src" path="jqmap"/>
+	<buildpathentry kind="con" path="org.eclipse.php.core.LANGUAGE"/>
+</buildpath>

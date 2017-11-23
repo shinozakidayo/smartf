@@ -1,0 +1,159 @@
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0"></script>
+<script>
+	$(function(){
+ 
+		var vLat = 37.693489;
+		var vLng = 139.486611;
+		
+		// MAPを生成
+		var map = new google.maps.Map(document.getElementById("map_canvas"), {
+			zoom: 8, // 拡大値
+			center: new google.maps.LatLng(vLat,vLng), // 初期表示の座標
+			mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
+			scaleControl: true,
+			scrollwheel: true // スケールの表示（距離の目安）
+		});
+ 
+		// マーカーの生成
+		var marker = new google.maps.Marker({
+			map: map,
+			position: new google.maps.LatLng( vLat,vLng ),
+	        icon: './bokkuru.png'
+		});
+ 
+		// マップクリックイベントを追加
+		google.maps.event.addListener(map, 'click', function(e)
+		{
+			// マーカーポジションを変更
+			marker.position = e.latLng;
+ 
+			// 緯度経度をフォームにセット
+			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
+			document.getElementById('longitude').value = e.latLng.lng(); // 経度
+ 
+			// マーカーを再セット
+			marker.setMap(map);
+		});
+		
+	    setInterval(function(){
+	    	console.log("vLat" + vLat);
+			vLat = vLat + 0.02;
+			marker.position = new google.maps.LatLng( vLat,vLng );
+			marker.setMap(map);
+			
+			document.getElementById('latitude').value = vLat; // 緯度
+			document.getElementById('longitude').value = vLng; // 経度
+			
+	    },500);
+ 
+	    $('#zahyosend').click(function () {
+	    	
+	        // Ajax通信を開始する
+	        $.ajax({
+	            url: 'zahyosend.php',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	                age: $('#age').val(),
+	                job: $('#job').val(),
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	            $('#result').val('成功');
+	            $('#detail').val(response.data);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#result').val('失敗');
+	            $('#detail').val('');
+	        })
+
+	    	
+	    });
+	    
+	    $('#nowzahyosend').click(function () {
+	    	
+	    	$('#message').val('位置情報取得します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    			navigator.geolocation.getCurrentPosition(successCallback,errorCallback);
+	    		} else {
+					$('#message').val("本ブラウザではGeolocationが使えません");
+	    		}
+
+
+	    });
+	    
+		 // ( 2 )位置情報が正常に取得されたら
+	    function successCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+	            url: '/yui2/apiSmartfigure/login',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	            $('#result').val('成功');
+	            $('#detail').val(response.data);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#result').val('失敗');
+	            $('#detail').val('');
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
+	    function errorCallback(error) {
+            $('#message').val("位置情報が許可されていません");
+	    }
+
+	});
+</script>
+
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>HTML5</title>
+    </head>
+    <body>
+<div id="map_canvas" style="width: 500px; height: 400px;"></div>
+<input id="latitude" type="text" />
+<input id="longitude" type="text" /><br>
+<input type="button" id="nowzahyosend" value="現在座標送信"><br>
+<input type="button" id="zahyosend" value="座標送信"><br>
+        <h1>設定</h1>
+        <p>
+            年齢: <input type="text" id="age" value="24"><br>
+            職業: <input type="text" id="job" value="学生"><br>
+            <input type="button" id="execute" value="送信"><br>
+        </p>
+        <h1>結果</h1>
+        <p>
+            可否: <input type="text" id="result" value=""><br> 
+            内容: <input type="text" id="detail" value=""><br>
+            メッセージ: <input type="text" id="message" value=""><br>
+        </p>
+        <script src="default.js"></script>
+    </body>
+    
+</html>

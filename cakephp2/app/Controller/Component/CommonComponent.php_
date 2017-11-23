@@ -1,0 +1,49 @@
+<?php
+App::uses('Component', 'Controller');
+App::uses('HttpSocket', 'Network/Http');
+
+class CommonComponent extends Component{
+	
+	CONST ACCESS_MAKE_WORD_PRESS_USER_URL = "https://cranky-shinozaki.ssl-lolipop.jp/lt01/wpusermake.php";
+
+	public function makeInputText($data){
+	
+		$pdata = "紹介者会員番号:" .  $data["YuiUser"]["introducer_no"] . PHP_EOL;
+		$pdata .= "紹介者名:" .  $data["YuiUser"]["introducer_sei"] . " " . $this->request->data["YuiUser"]["introducer_mei"] . PHP_EOL;
+		$pdata .= "郵便番号：" .  $data["YuiUser"]["zip_code1"] . "  " . $this->request->data["YuiUser"]["zip_code2"] . PHP_EOL;
+		$pdata .= "都道府県:" .  $data["YuiUser"]["prefectures_name"] . PHP_EOL;
+		$pdata .= "市区町村:" .  $data["YuiUser"]["city_name"] . PHP_EOL;
+		$pdata .= "住所その他:" .  $data["YuiUser"]["street_address"] . PHP_EOL;
+		$pdata .= "銀行コード:" .  $data["YuiUser"]["bank_code"] . PHP_EOL;
+		$pdata .= "口座種別:" .  $data["YuiUser"]["bank_account_type"] . PHP_EOL;
+		$pdata .= "支店番号（半角数字）:" .  $data["YuiUser"]["bank_branch_no"] . PHP_EOL;
+		$pdata .= "口座番号（半角数字）:" .  $data["YuiUser"]["bank_account_no"] . PHP_EOL;
+		$pdata .= "口座名義（漢字）:" .  $data["YuiUser"]["bank_account_name"] . PHP_EOL;
+		$pdata .= "口座名義（全角カナ）:" .  $data["YuiUser"]["bank_account_name_kana"] . PHP_EOL;
+
+		return $pdata;
+	}
+	
+	public function makeWordpressUser($userName,$userPass,$userMail){
+		
+		$USER_NAME = $_POST['USER_NAME'];
+		$USER_PASS = $_POST['USER_PASS'];
+		$USER_MAIL = $_POST['USER_MAIL'];
+		
+		$url = self::ACCESS_MAKE_WORD_PRESS_USER_URL;
+		$data = array(
+				'USER_NAME' => $userName,
+				'USER_PASS' => $userPass,
+				'USER_MAIL' => $userMail,
+		);
+		
+		App::uses('HttpSocket', 'Network/Http');
+		$HttpSocket = new HttpSocket();
+		$response = $HttpSocket->post($url, $data);
+		
+		return $response->body;
+		
+	}
+	
+}
+
