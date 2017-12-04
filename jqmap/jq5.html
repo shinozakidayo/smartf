@@ -127,6 +127,68 @@
 	    function errorCallback(error) {
             $('#message').val("位置情報が許可されていません");
 	    }
+	    
+	    $('#nowzahyoget').click(function () {
+	    	
+	    	$('#message').val('位置情報取得します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    			navigator.geolocation.getCurrentPosition(successGetCallback,errorGetCallback);
+	    		} else {
+					$('#message').val("本ブラウザではGeolocationが使えません");
+	    		}
+
+
+	    });
+	    
+		 // 位置情報が正常に取得されたら
+	    function successGetCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/zahyoget',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figureId: 1,
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	        	
+	            $('#result').val('成功');
+	            $('#id').val(response.id);
+	            $('#figure_id').val(response.figure_id);
+	            $('#lng').val(response.lng);
+	            $('#lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#result').val('失敗');
+	            $('#id').val("");
+	            $('#figure_id').val("");
+	            $('#lng').val("");
+	            $('#lat').val("");
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
+	    function errorGetCallback(error) {
+            $('#message').val("位置情報が許可されていません");
+	    }
+
 
 	});
 </script>
@@ -142,6 +204,7 @@
 <input id="latitude" type="text" />
 <input id="longitude" type="text" /><br>
 <input type="button" id="nowzahyosend" value="現在座標送信"><br>
+<input type="button" id="nowzahyoget" value="現在座受信"><br>
 <input type="button" id="zahyosend" value="座標送信"><br>
         <h1>設定</h1>
         <p>
@@ -154,6 +217,14 @@
             可否: <input type="text" id="result" value=""><br> 
             内容: <input type="text" id="detail" value=""><br>
             メッセージ: <input type="text" id="message" value=""><br>
+        </p>
+        <h1>結果２</h1>
+        <p>
+            可否: <input type="text" id="result" value=""><br> 
+            ID: <input type="text" id="id" value=""><br>
+            figure_id: <input type="text" id="figure_id" value=""><br>
+            lng: <input type="text" id="lng" value=""><br>
+            lat: <input type="text" id="lat" value=""><br>
         </p>
         <script src="default.js"></script>
     </body>

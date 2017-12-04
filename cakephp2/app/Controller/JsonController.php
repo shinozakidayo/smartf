@@ -43,8 +43,8 @@ class JsonController extends AppController{
 	$longitude = $this->request->data('longitude');
  
  	$figereId = 1;
- 	$latitude = mt_rand(0.01,1.00);
- 	$longitude = mt_rand(0.01,1.00);
+// 	$latitude = mt_rand(0.01,1.00);
+// 	$longitude = mt_rand(0.01,1.00);
 
  	$conditions = array('conditions' => array('FigureLatlngPosition.figure_id'=>$figereId));
  	
