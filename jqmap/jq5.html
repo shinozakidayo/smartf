@@ -97,10 +97,12 @@
 		    
 	        // Ajax通信を開始する
 	        $.ajax({
-	            url: 'zahyosend.php',
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/zahyosend',
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figureId: 1,
 	            	latitude: Potition_latitude,
 	            	longitude: Potition_longitude,
 	            },
@@ -108,7 +110,7 @@
 	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
 	        .done(function (response) {
 	            $('#result').val('成功');
-	            $('#detail').val(response.data);
+	            $('#detail').val(response.geomData);
 	        })
 	        // ・サーバからステータスコード400以上が返ってきたとき
 	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき

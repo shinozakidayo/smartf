@@ -36,25 +36,23 @@ class JsonController extends AppController{
  	// レスポンスの形式をJSONで指定
  	$this->response->type('application/json');
  	
-// 	$figereId = mt_rand(1,1000);
 
- 	$figereId = mt_rand(1,1000);
- 	
- //	$latitude = $this->request->data['latitude'];
- //	$longitude = $this->request->data['longitude'];
+ 	// POSTデータの取得
+ 	$figereId = $this->request->data('figereId');
+	$latitude = $this->request->data('latitude');
+	$longitude = $this->request->data('longitude');
  
+ 	$figereId = 1;
  	$latitude = mt_rand(0.01,1.00);
  	$longitude = mt_rand(0.01,1.00);
 
-// 	var_dump($this->FigureLatlngPosition);
+ 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_id'=>$figereId));
  	
- 	$conditions = array('status'=>'1');
- 	
- 	if($this->FigureLatlngPosition->hasAny($conditions) == true){
- 		$this->FigureLatlngPosition->add2($figereId,$latitude,$longitude);
+ 	if($this->FigureLatlngPosition->find('count',$conditions) > 0){
+ 		$this->FigureLatlngPosition->updategeom($figereId,$latitude,$longitude);
  	}
  	else {
- 		$this->FigureLatlngPosition->update($figereId,$latitude,$longitude);
+ 		$this->FigureLatlngPosition->insertgeom($figereId,$latitude,$longitude);
  	}
  	
 /* 	$data = array(
@@ -68,11 +66,51 @@ class JsonController extends AppController{
  			array('8','test81','test82')
  	); */
  	
+// 	echo($this->getDataSource()->getLog());
  	
- 	$data = "{$latitude}lt、{$longitude}gt です";
- 	$this->response->body(json_encode(compact('data')));
+ 	$geomData = "{$latitude}lt、{$longitude}gt です";
+ 	$this->response->body(json_encode(compact('geomData')));
  	
  }
+ 
+ function zahyoget(){
+ 	
+ 	$this->loadModel('FigureLatlngPosition');
+ 	
+ 	// ①HTMLの表示はいらないため自動レンダリングをOFFにする
+ 	$this->autoRender = false;
+ 	// レスポンスの形式をJSONで指定
+ 	$this->response->type('application/json');
+ 	
+ 	// POSTデータの取得
+ 	$figereId = $this->request->data('figereId');
+
+ 	$figereId = 1;
+ 	
+ 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_id'=>$figereId));
+ 	
+ 	
+ 	$geomData=$this->FigureLatlngPosition->find('first',$conditions);
+
+ 	// モデル名があるとJavaScriptで扱いづらいので消す
+ 	$FigureLatlngPosition = $geomData['FigureLatlngPosition'];
+ 	
+// 	$this->response->body(print_r($geomData,true));
+ 	
+// 	echo($this->getDataSource()->getLog());
+ 	
+ 	$this->log(json_encode($geomData));
+ 	
+// 	$this->response->body(json_encode(array("test" => "tt")));
+
+ 	// バイナリデータはJSONエンコードできないよだから消す
+ 	unset($FigureLatlngPosition['latlng']);
+ 	
+// 	$this->response->body(print_r(compact('geomData'),true));
+ 	$this->response->body(json_encode($FigureLatlngPosition));
+ 	
+ }
+ 
  
 }
 

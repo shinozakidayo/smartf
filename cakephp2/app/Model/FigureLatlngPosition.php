@@ -10,7 +10,7 @@ class FigureLatlngPosition extends AppModel {
     		'lat' => 'Y(latlng)'
     );
     
-	public function addData($figureId,$lat,$lan){
+/*	public function addData($figureId,$lat,$lan){
 		
 		echo("insert into {$this->useTable} (figure_id,latlng) ('{$figureId}',GeomFromText('POINT({$lat} {$lan}'));");
 		
@@ -20,21 +20,22 @@ class FigureLatlngPosition extends AppModel {
 			'figure_id' => $figureId,
 			'latlng' => "GeomFromText('POINT({$lat} {$lan})')"
 			]);
-	}
-	public function add2($figureId,$lat,$lan){
+	} */
+	public function insertgeom($figureId,$lat,$lan){
 //		$latlng = $this->query("SELECT GeomFromText('POINT(35.689　139.691)') as latlng");
 		
 //		$latlng = $this->query("SELECT GeomFromText('POINT(137.10 35.20)')");
 
 		$latlng = $this->query("insert into {$this->useTable}(figure_id,latlng)  values('{$figureId}',GeomFromText('POINT({$lat} {$lan})'));");
 		
-		var_dump($latlng);
+//		var_dump($latlng);
 	}
 	
-	public function update($figureId,$lat,$lan){
-
+	public function updategeom($figureId,$lat,$lan){
+	
 		$latlng = $this->query("update {$this->useTable} set latlng = GeomFromText('POINT({$lat} {$lan})') where figure_id = '{$figureId}';");
 		
 	}
+	
 	
 }
