@@ -1,10 +1,19 @@
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0&libraries=geometry"></script>
 <script>
 	$(function(){
  
 		var vLat = 37.693489;
 		var vLng = 139.486611;
+
+		var vTargetLat = 0;
+		var vTargetLng = 0;
+
+		var vStartLat = 0;
+		var vStartLng = 0;
+
+		var vSpeed = 100; // キロメートル
+
 		
 		// MAPを生成
 		var map = new google.maps.Map(document.getElementById("map_canvas"), {
@@ -29,23 +38,141 @@
 			marker.position = e.latLng;
  
 			// 緯度経度をフォームにセット
-			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
-			document.getElementById('longitude').value = e.latLng.lng(); // 経度
+//			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
+//			document.getElementById('longitude').value = e.latLng.lng(); // 経度
  
-			// マーカーを再セット
-			marker.setMap(map);
+			vTargetLat = e.latLng.lat();
+			vTargetLng = e.latLng.lng();
+			
+
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/figereLocationStartSend',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figureId: 1,
+	            	latitude: e.latLng.lat(),
+	            	longitude: e.latLng.lng(),
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	            $('#target_result').val('成功');
+	            $('#target_id').val(response.id);
+	            $('#target_figure_id').val(response.figure_id);
+	            $('#target_lng').val(response.lng);
+	            $('#target_lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#target_result').val('失敗');
+	            $('#target_id').val("");
+	            $('#target_figure_id').val("");
+	            $('#target_lng').val("");
+	            $('#target_lat').val("");
+	        });
+
+	        // Geolocation APIに対応している
+	        if (navigator.geolocation) {
+	          // 現在地を取得
+	          navigator.geolocation.getCurrentPosition(
+	            // 取得成功した場合
+	            function(position) {
+	            	// 開始位置を保存
+					vStartLat = position.coords.latitude;
+					vStartLng = position.coords.longitude;
+					
+	            	// 現在地も更新
+					vLat = position.coords.latitude;
+					vLng = position.coords.longitude;
+            
+			      // 緯度・経度を変数に格納
+			      var mapLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+			      // マップオプションを変数に格納
+
+			      // マップオブジェクト作成
+			      map.setCenter(mapLatLng);
+
+			      marker.setMap(map);
+			      
+//　マップにマーカーを表示する
+//			      var marker = new google.maps.Marker({
+//			        map : map,             // 対象の地図オブジェクト
+//			        position : mapLatLng   // 緯度・経度
+//			      });
+			      
+			    },
+			    // 取得失敗した場合
+			    function(error) {
+			      // エラーメッセージを表示
+			      switch(error.code) {
+			        case 1: // PERMISSION_DENIED
+			          alert("位置情報の利用が許可されていません");
+			          break;
+			        case 2: // POSITION_UNAVAILABLE
+			          alert("現在位置が取得できませんでした");
+			          break;
+			        case 3: // TIMEOUT
+			          alert("タイムアウトになりました");
+			          break;
+			        default:
+			          alert("その他のエラー(エラーコード:"+error.code+")");
+			          break;
+			      }
+			    }
+			  );
+			// Geolocation APIに対応していない
+			} else {
+			  alert("この端末では位置情報が取得できません");
+			}
+      
+// マーカーを再セット
+//			marker.setMap(map);
 		});
 		
 	    setInterval(function(){
-	    	console.log("vLat" + vLat);
-			vLat = vLat + 0.02;
-			marker.position = new google.maps.LatLng( vLat,vLng );
-			marker.setMap(map);
+//	    	console.log("vLat" + vLat);
+//			vLat = vLat + 0.02;
+//			marker.position = new google.maps.LatLng( vLat,vLng );
+//			marker.setMap(map);
 			
 			document.getElementById('latitude').value = vLat; // 緯度
 			document.getElementById('longitude').value = vLng; // 経度
 			
-	    },500);
+			var pos = [
+			           new google.maps.LatLng(vTargetLat, vTargetLng),
+			           new google.maps.LatLng(vStartLat, vStartLng)
+			       ];
+			var dist = google.maps.geometry.spherical.computeLength(pos);
+
+			document.getElementById('distance').value = dist;
+			
+			var time = dist / 1000 / vSpeed;
+			
+			document.getElementById('estimationtime').value = time;
+			
+			differenceLat = vTargetLat - vStartLat;
+			differenceLng = vTargetLng - vStartLng;
+			
+			if(time != 0){
+				
+				var moveLat = differenceLat / (time * 3600);
+				var moveLng = differenceLng / (time * 3600);
+				
+				vLat = vLat + moveLat;
+				vLng = vLng + moveLng;
+
+				marker.position = new google.maps.LatLng( vLat,vLng );
+				marker.setMap(map);
+				
+			}
+
+	    },1000);
  
 	    $('#zahyosend').click(function () {
 	    	
@@ -188,7 +315,121 @@
 	    function errorGetCallback(error) {
             $('#message').val("位置情報が許可されていません");
 	    }
+	    
+	    $('#locationstartsend').click(function () {
+	    	
+	    	$('#message').val('移動前位置情報をサーバーに送信します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    		navigator.geolocation.getCurrentPosition(successSendStartCallback,errorCallback);
+	    	} else {
+				$('#message').val("本ブラウザではGeolocationが使えません");
+	    	}
 
+	    });
+
+	    
+		 // 位置情報が正常に取得されたら
+	    function successSendStartCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/figereLocationStartSend',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figureId: 1,
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	        	
+	            $('#start_result').val('成功');
+	            $('#start_id').val(response.id);
+	            $('#start_figure_id').val(response.figure_id);
+	            $('#start_lng').val(response.lng);
+	            $('#start_lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#start_result').val('失敗');
+	            $('#start_id').val("");
+	            $('#start_figure_id').val("");
+	            $('#start_lng').val("");
+	            $('#start_lat').val("");
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
+	    $('#locationtargetsend').click(function () {
+	    	
+	    	$('#message').val('移動前位置情報をサーバーに送信します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    		navigator.geolocation.getCurrentPosition(successSendTargetCallback,errorCallback);
+	    	} else {
+				$('#message').val("本ブラウザではGeolocationが使えません");
+	    	}
+
+	    });
+
+	    
+		 // 位置情報が正常に取得されたら
+	    function successSendTargetCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/figereLocationStartSend',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figureId: 1,
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	        	
+	            $('#target_result').val('成功');
+	            $('#target_id').val(response.id);
+	            $('#target_figure_id').val(response.figure_id);
+	            $('#target_lng').val(response.lng);
+	            $('#target_lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#target_result').val('失敗');
+	            $('#target_id').val("");
+	            $('#target_figure_id').val("");
+	            $('#target_lng').val("");
+	            $('#target_lat').val("");
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
 
 	});
 </script>
@@ -204,7 +445,6 @@
 <input id="latitude" type="text" />
 <input id="longitude" type="text" /><br>
 <input type="button" id="nowzahyosend" value="現在座標送信"><br>
-<input type="button" id="nowzahyoget" value="現在座受信"><br>
 <input type="button" id="zahyosend" value="座標送信"><br>
         <h1>設定</h1>
         <p>
@@ -214,18 +454,41 @@
         </p>
         <h1>結果</h1>
         <p>
+            距離: <input type="text" id="distance" value=""><br> 
+            推定時間: <input type="text" id="estimationtime" value="">時間<br> 
             可否: <input type="text" id="result" value=""><br> 
             内容: <input type="text" id="detail" value=""><br>
             メッセージ: <input type="text" id="message" value=""><br>
         </p>
-        <h1>結果２</h1>
+        <h1>現在地送信</h1>
         <p>
             可否: <input type="text" id="result" value=""><br> 
             ID: <input type="text" id="id" value=""><br>
             figure_id: <input type="text" id="figure_id" value=""><br>
             lng: <input type="text" id="lng" value=""><br>
             lat: <input type="text" id="lat" value=""><br>
+<input type="button" id="nowzahyoget" value="現在座受信"><br>
         </p>
+        <h1>移動元送信</h1>
+        <p>
+            可否: <input type="text" id="start_result" value=""><br> 
+            ID: <input type="text" id="start_id" value=""><br>
+            figure_id: <input type="text" id="start_figure_id" value=""><br>
+            lng: <input type="text" id="start_lng" value=""><br>
+            lat: <input type="text" id="start_lat" value=""><br>
+<input type="button" id="locationstartsend" value="移動元送信"><br>
+        </p>
+        <h1>移動先送信</h1>
+        <p>
+            可否: <input type="text" id="target_result" value=""><br> 
+            ID: <input type="text" id="target_id" value=""><br>
+            figure_id: <input type="text" id="target_figure_id" value=""><br>
+            lng: <input type="text" id="target_lng" value=""><br>
+            lat: <input type="text" id="target_lat" value=""><br>
+<input type="button" id="locationtargetsend" value="移動先送信"><br>
+        </p>
+        
+        
         <script src="default.js"></script>
     </body>
     

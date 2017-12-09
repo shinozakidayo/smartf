@@ -26,7 +26,13 @@ class FigureLatlngPosition extends AppModel {
 		
 //		$latlng = $this->query("SELECT GeomFromText('POINT(137.10 35.20)')");
 
+		if(is_numeric($figureId) == false || is_numeric($lat) == false || is_numeric($lan) == false){
+			return false;
+		}
+		
 		$latlng = $this->query("insert into {$this->useTable}(figure_id,latlng)  values('{$figureId}',GeomFromText('POINT({$lat} {$lan})'));");
+
+		return true;
 		
 //		var_dump($latlng);
 	}

@@ -73,6 +73,52 @@ class JsonController extends AppController{
  	
  }
  
+ function figereLocationStartSend(){
+
+ 	$this->loadModel('FigereLatlngLocationStart');
+ 	
+ 	// ①HTMLの表示はいらないため自動レンダリングをOFFにする
+ 	$this->autoRender = false;
+ 	// レスポンスの形式をJSONで指定
+ 	$this->response->type('application/json');
+ 	
+ 	// POSTデータの取得
+ 	$figereId = $this->request->data('figereId');
+ 	$latitude = $this->request->data('latitude');
+ 	$longitude = $this->request->data('longitude');
+
+	if($latitude == null || $longitude == null){
+		$geomData = false;
+ 		$this->response->body(json_encode(compact('geomData')));
+ 		return true;
+	}
+ 	
+ 	$conditions = array('conditions' => array('FigereLatlngLocationStart.figure_id'=>$figereId));
+ 	
+ 	if($this->FigereLatlngLocationStart->find('count',$conditions) > 0){
+ 		$this->FigereLatlngLocationStart->updategeom($figereId,$latitude,$longitude);
+ 	}
+ 	else {
+ 		$this->FigereLatlngLocationStart->insertgeom($figereId,$latitude,$longitude);
+ 	}
+ 	
+ 	$geomData = "{$latitude}lt、{$longitude}gt です";
+ 	$this->response->body(json_encode(compact('geomData')));
+ 	
+ }
+
+ function figereLocationTargetSend(){
+ 
+ }
+
+ function figereLocationStartGet(){
+ 
+ }
+ 
+ function figereLocationTargetGet(){
+ 
+ }
+ 
  function zahyoget(){
  	
  	$this->loadModel('FigureLatlngPosition');
