@@ -2,7 +2,9 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0&libraries=geometry"></script>
 <script>
 	$(function(){
- 
+
+		var vFigurePersonData = null;
+		
 		var vLat = 37.693489;
 		var vLng = 139.486611;
 
@@ -14,6 +16,47 @@
 
 		var vSpeed = 100; // キロメートル
 
+		// dataの初期化を行う
+		initData();
+		
+		function initData(){
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/initData',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	            $('#result').val('成功');
+	        	vFigurePersonData = response;
+	        	
+	        	for(let i = 0; i < vFigurePersonData.length; i++) {
+//	        		  console.log(vFigurePersonData[i]);
+//						vFigurePersonData[i]["FigurePerson"].id;
+//						vFigurePersonData[i]["FigurePerson"].pname;
+//						vFigurePersonData[i]["FigurePerson"].img;
+						
+	        		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
+	        		    $option = $('<option>')
+	        		        .val(vFigurePersonData[i]["FigurePerson"].id)
+	        		        .text(vFigurePersonData[i]["FigurePerson"].pname)
+	        		        .prop('selected', isSelected);
+	        		    $('#activeperson').append($option);
+	        	}
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#result').val('失敗');
+	        });
+
+		}
+		
 		
 		// MAPを生成
 		var map = new google.maps.Map(document.getElementById("map_canvas"), {
@@ -446,6 +489,11 @@
 <input id="longitude" type="text" /><br>
 <input type="button" id="nowzahyosend" value="現在座標送信"><br>
 <input type="button" id="zahyosend" value="座標送信"><br>
+        <h1>アクティブキャラクター</h1>
+        <p>
+                <select id="activeperson">
+                </select>
+        </p>
         <h1>設定</h1>
         <p>
             年齢: <input type="text" id="age" value="24"><br>

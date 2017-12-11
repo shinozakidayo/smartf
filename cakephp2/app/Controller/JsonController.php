@@ -157,6 +157,30 @@ class JsonController extends AppController{
  	
  }
  
+ function initData(){
+ 	
+ 	$this->loadModel('FigurePerson');
+ 	
+ 	// ①HTMLの表示はいらないため自動レンダリングをOFFにする
+ 	$this->autoRender = false;
+ 	// レスポンスの形式をJSONで指定
+ 	$this->response->type('application/json');
+ 	
+ 	// 	$figurePersonId = $this->request->data('figurePersonId');
+ 	
+ 	// 	$figurePersonId = 1;
+ 	
+ 	// 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_id'=>$figereId));
+ 	
+ 	$figurePersonData=$this->FigurePerson->find('all');
+ 	
+ 	$this->log(json_encode($figurePersonData));
+ 	
+// 	$this->response->body(json_encode($figurePerson));
+ 	$this->response->body(json_encode($figurePersonData));
+ 	
+ }
+ 
  
 }
 
