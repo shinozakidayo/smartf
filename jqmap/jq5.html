@@ -5,8 +5,8 @@
 
 		var vFigurePersonData = null;
 		
-		var vLat = 37.693489;
-		var vLng = 139.486611;
+		var vLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
+		var vLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
 
 		var vTargetLat = 0;
 		var vTargetLng = 0;
@@ -15,11 +15,25 @@
 		var vStartLng = 0;
 
 		var vSpeed = 100; // キロメートル
+		
+		var map = null;
+		
+		var marker =  null;
+
+		// MAPを生成
+		map = new google.maps.Map(document.getElementById("map_canvas"), {
+			zoom: 8, // 拡大値
+			center: new google.maps.LatLng(vLat[1],vLng[1]), // 初期表示の座標
+			mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
+			scaleControl: true,
+			scrollwheel: true // スケールの表示（距離の目安）
+		});
 
 		// dataの初期化を行う
 		initData();
 		
 		function initData(){
+			
 	        // Ajax通信を開始する
 	        $.ajax({
 //	            url: 'zahyosend.php',
@@ -47,6 +61,47 @@
 	        		        .prop('selected', isSelected);
 	        		    $('#activeperson').append($option);
 	        	}
+	        	
+	        	marker = new Array();
+	        	
+	        	for(let i = 0; i < vFigurePersonData.length; i++) {
+	        		
+	        		var iconOffset = new google.maps.Point(34, 34);
+	        		var iconPosition = new google.maps.Point(0, 0);
+	        		var iconSize = new google.maps.Size(200, 200);
+	        		
+	        		var scaledSize = new google.maps.Size(64, 64)
+//	        		var iconShadowSize = new google.maps.Size(37, 34);
+	        		
+	        		var icon = new google.maps.MarkerImage('./cimg/' + vFigurePersonData[i]["FigurePerson"].img, iconSize, iconPosition, iconOffset,scaledSize);
+
+		    		marker[vFigurePersonData[i]["FigurePerson"].id] = new google.maps.Marker({
+		    			map: map,
+		    			position: new google.maps.LatLng( vLat[parseInt(vFigurePersonData[i]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[i]["FigurePerson"].id)] ),
+		    	        icon: icon
+		    		});
+
+	    		// マーカーの生成
+/*		    		marker[vFigurePersonData[i]["FigurePerson"].id] = new google.maps.Marker({
+		    			map: map,
+		    			position: new google.maps.LatLng( vLat[parseInt(vFigurePersonData[i]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[i]["FigurePerson"].id)] ),
+		    	        icon: './cimg/' + vFigurePersonData[i]["FigurePerson"].img
+		    		}); */
+		    		
+		    		
+/*		    		marker[vFigurePersonData[i]["FigurePerson"].id] = new google.maps.Marker({
+		    			map: map,
+		    			position: new google.maps.LatLng( 37.693489,139.486611 ),
+		    	        icon: './bokkuru.png'
+		    		}); */
+
+	    		
+	        	}
+
+	        	map.panTo(new google.maps.LatLng(vLat[parseInt(vFigurePersonData[1]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[1]["FigurePerson"].id)]));
+	        	
+	        	map.setZoom(12);
+	     
 	        })
 	        // ・サーバからステータスコード400以上が返ってきたとき
 	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
@@ -58,22 +113,7 @@
 		}
 		
 		
-		// MAPを生成
-		var map = new google.maps.Map(document.getElementById("map_canvas"), {
-			zoom: 8, // 拡大値
-			center: new google.maps.LatLng(vLat,vLng), // 初期表示の座標
-			mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
-			scaleControl: true,
-			scrollwheel: true // スケールの表示（距離の目安）
-		});
- 
-		// マーカーの生成
-		var marker = new google.maps.Marker({
-			map: map,
-			position: new google.maps.LatLng( vLat,vLng ),
-	        icon: './bokkuru.png'
-		});
- 
+
 		// マップクリックイベントを追加
 		google.maps.event.addListener(map, 'click', function(e)
 		{
