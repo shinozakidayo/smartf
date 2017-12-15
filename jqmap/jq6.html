@@ -1,51 +1,322 @@
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0&libraries=geometry"></script>
 <script>
 	$(function(){
- 
-		var vLat = 37.693489;
-		var vLng = 139.486611;
+
+		var vFigurePersonData = null;
 		
+		var vLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
+		var vLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
+
+		var vTargetLat = new Array();
+		var vTargetLng = new Array();
+
+		var vStartLat = new Array();
+		var vStartLng = new Array();
+
+		var vSpeed = 100; // キロメートル
+		
+		var map = null;
+		
+		var marker =  null;
+
 		// MAPを生成
-		var map = new google.maps.Map(document.getElementById("map_canvas"), {
+		map = new google.maps.Map(document.getElementById("map_canvas"), {
 			zoom: 8, // 拡大値
-			center: new google.maps.LatLng(vLat,vLng), // 初期表示の座標
+			center: new google.maps.LatLng(vLat[1],vLng[1]), // 初期表示の座標
 			mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
 			scaleControl: true,
 			scrollwheel: true // スケールの表示（距離の目安）
 		});
- 
-		// マーカーの生成
-		var marker = new google.maps.Marker({
-			map: map,
-			position: new google.maps.LatLng( vLat,vLng ),
-	        icon: './bokkuru.png'
-		});
- 
+
+		// dataの初期化を行う
+		initData();
+		
+		function initData(){
+			
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/initData',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	            $('#result').val('成功');
+	        	vFigurePersonData = response;
+	        	
+	        	for(let i = 0; i < vFigurePersonData.length; i++) {
+//	        		  console.log(vFigurePersonData[i]);
+//						vFigurePersonData[i]["FigurePerson"].id;
+//						vFigurePersonData[i]["FigurePerson"].pname;
+//						vFigurePersonData[i]["FigurePerson"].img;
+						
+	        		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
+	        		    $option = $('<option>')
+	        		        .val(vFigurePersonData[i]["FigurePerson"].id)
+	        		        .text(vFigurePersonData[i]["FigurePerson"].pname)
+	        		        .prop('selected', isSelected);
+	        		    $('#activeperson').append($option);
+	        	}
+	        	
+	        	marker = new Array();
+	        	
+	        	for(let i = 0; i < vFigurePersonData.length; i++) {
+	        		
+	        		var iconOffset = new google.maps.Point(34, 34);
+	        		var iconPosition = new google.maps.Point(0, 0);
+	        		var iconSize = new google.maps.Size(200, 200);
+	        		
+	        		var scaledSize = new google.maps.Size(64, 64)
+//	        		var iconShadowSize = new google.maps.Size(37, 34);
+	        		
+	        		var icon = new google.maps.MarkerImage('./cimg/' + vFigurePersonData[i]["FigurePerson"].img, iconSize, iconPosition, iconOffset,scaledSize);
+
+		    		marker[vFigurePersonData[i]["FigurePerson"].id] = new google.maps.Marker({
+		    			map: map,
+		    			position: new google.maps.LatLng( vLat[parseInt(vFigurePersonData[i]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[i]["FigurePerson"].id)] ),
+		    	        icon: icon
+		    		});
+
+	    		// マーカーの生成
+/*		    		marker[vFigurePersonData[i]["FigurePerson"].id] = new google.maps.Marker({
+		    			map: map,
+		    			position: new google.maps.LatLng( vLat[parseInt(vFigurePersonData[i]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[i]["FigurePerson"].id)] ),
+		    	        icon: './cimg/' + vFigurePersonData[i]["FigurePerson"].img
+		    		}); */
+		    		
+		    		
+/*		    		marker[vFigurePersonData[i]["FigurePerson"].id] = new google.maps.Marker({
+		    			map: map,
+		    			position: new google.maps.LatLng( 37.693489,139.486611 ),
+		    	        icon: './bokkuru.png'
+		    		}); */
+
+	    		
+	        	}
+
+	        	map.panTo(new google.maps.LatLng(vLat[parseInt(vFigurePersonData[1]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[1]["FigurePerson"].id)]));
+	        	
+	        	map.setZoom(12);
+	     
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#result').val('失敗');
+	        });
+
+		}
+		
+		
+
 		// マップクリックイベントを追加
 		google.maps.event.addListener(map, 'click', function(e)
 		{
 			// マーカーポジションを変更
-			marker.position = e.latLng;
+	    	var activeperson = $('#activeperson').val();
+
+//			marker[activeperson].position = e.latLng;
  
 			// 緯度経度をフォームにセット
-			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
-			document.getElementById('longitude').value = e.latLng.lng(); // 経度
+//			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
+//			document.getElementById('longitude').value = e.latLng.lng(); // 経度
  
-			// マーカーを再セット
-			marker.setMap(map);
+			vTargetLat[activeperson] = e.latLng.lat();
+			vTargetLng[activeperson] = e.latLng.lng();
+			
+
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/figereLocationStartSend',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figurePersonId: activeperson,
+	            	latitude: e.latLng.lat(),
+	            	longitude: e.latLng.lng(),
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	            $('#target_result').val('成功');
+	            $('#target_id').val(response.id);
+	            $('#target_figure_id').val(response.figure_id);
+	            $('#target_lng').val(vTargetLng[activeperson]);
+	            $('#target_lat').val(vTargetLat[activeperson]);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#target_result').val('失敗');
+	            $('#target_id').val("");
+	            $('#target_figure_id').val("");
+	            $('#target_lng').val("");
+	            $('#target_lat').val("");
+	        });
+
+	        // Geolocation APIに対応している
+	        if (navigator.geolocation) {
+	          // 現在地を取得
+	          navigator.geolocation.getCurrentPosition(
+	            // 取得成功した場合
+	            function(position) {
+	            	
+	    	    	var activeperson = $('#activeperson').val();
+
+
+	            	// 開始位置を保存
+					vStartLat[activeperson] = position.coords.latitude;
+					vStartLng[activeperson]  = position.coords.longitude;
+					
+	            	// 現在地も更新
+					vLat[activeperson]  = position.coords.latitude;
+					vLng[activeperson]  = position.coords.longitude;
+            
+			      // 緯度・経度を変数に格納
+			      var mapLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+			      // マップオプションを変数に格納
+
+			      // マップオブジェクト作成
+			      map.setCenter(mapLatLng);
+
+			      marker[activeperson].setMap(map);
+			      
+//　マップにマーカーを表示する
+//			      var marker = new google.maps.Marker({
+//			        map : map,             // 対象の地図オブジェクト
+//			        position : mapLatLng   // 緯度・経度
+//			      });
+			      
+			    },
+			    // 取得失敗した場合
+			    function(error) {
+			      // エラーメッセージを表示
+			      switch(error.code) {
+			        case 1: // PERMISSION_DENIED
+			          alert("位置情報の利用が許可されていません");
+			          break;
+			        case 2: // POSITION_UNAVAILABLE
+			          alert("現在位置が取得できませんでした");
+			          break;
+			        case 3: // TIMEOUT
+			          alert("タイムアウトになりました");
+			          break;
+			        default:
+			          alert("その他のエラー(エラーコード:"+error.code+")");
+			          break;
+			      }
+			    }
+			  );
+			// Geolocation APIに対応していない
+			} else {
+			  alert("この端末では位置情報が取得できません");
+			}
+      
+// マーカーを再セット
+//			marker.setMap(map);
 		});
 		
 	    setInterval(function(){
-	    	console.log("vLat" + vLat);
-			vLat = vLat + 0.02;
-			marker.position = new google.maps.LatLng( vLat,vLng );
-			marker.setMap(map);
+	    	
+	    	// 現在アクティブのキャラクターを取得
+	    	var activeperson = $('#activeperson').val();
+	    	
+        	for(let i = 0; i < vFigurePersonData.length; i++) {
+        		
+        		var figurePersonId = vFigurePersonData[i]["FigurePerson"].id;
+        		
+        		// 配列に添字がない場合は処理をしない（まだ目的地が設定されていない）
+        		if (!vLat[figurePersonId] || !vLng[figurePersonId] ||
+        			!vTargetLat[figurePersonId] || !vTargetLng[figurePersonId] ||
+        			!vStartLng[figurePersonId] || !vStartLng[figurePersonId]
+        			) {
+        			continue;
+        		}
+        		
+    			document.getElementById('latitude').value = vLat[figurePersonId]; // 緯度
+    			document.getElementById('longitude').value = vLng[figurePersonId]; // 経度
+    			
+    			var pos = [
+    			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLng[figurePersonId]),
+    			           new google.maps.LatLng(vStartLat[figurePersonId], vStartLng[figurePersonId])
+    			       ];
+    			var dist = google.maps.geometry.spherical.computeLength(pos);
+
+    			document.getElementById('distance').value = dist;
+    			
+    			var time = dist / 1000 / vSpeed;
+    			
+    			document.getElementById('estimationtime').value = time;
+    			
+    			differenceLat = vTargetLat[figurePersonId] - vStartLat[figurePersonId];
+    			differenceLng = vTargetLng[figurePersonId] - vStartLng[figurePersonId];
+    			
+    			if(time != 0){
+ 
+    				var moveLat = 0;
+    				if(differenceLat > 0){
+    					
+    					if(vTargetLat[figurePersonId] > vLat[figurePersonId]){
+							moveLat = differenceLat / (time * 3600);
+		    				vLat[figurePersonId] = vLat[figurePersonId] + moveLat;
+						}
+						else {
+    						vLat[figurePersonId] = vTargetLat[figurePersonId];
+						}
+
+    				}
+    				else {
+    					
+    					if(vTargetLat[figurePersonId] < vLat[figurePersonId]){
+							moveLat = differenceLat / (time * 3600);
+		    				vLat[figurePersonId] = vLat[figurePersonId] + moveLng;
+						}
+    					else {
+    						vLat[figurePersonId] = vTargetLat[figurePersonId];
+    					}
+    					
+    				}
+    				
+    				var moveLng = 0;
+    				if(differenceLng > 0){
+    					
+    					if(vTargetLng[figurePersonId] > vLng[figurePersonId]){
+							moveLng = differenceLng / (time * 3600);
+		    				vLng[figurePersonId] = vLng[figurePersonId] + moveLng;
+						}
+						else {
+    						vLng[figurePersonId] = vTargetLng[figurePersonId];
+						}
+
+    				}
+    				else {
+    					
+    					if(vTargetLng[figurePersonId] < vLng[figurePersonId]){
+							moveLng = differenceLng / (time * 3600);
+		    				vLng[figurePersonId] = vLng[figurePersonId] + moveLng;
+						}
+    					else {
+    						vLng[figurePersonId] = vTargetLng[figurePersonId];
+    					}
+    					
+    				}
+
+    				marker[figurePersonId].position = new google.maps.LatLng( vLat[figurePersonId],vLng[figurePersonId] );
+    				marker[figurePersonId].setMap(map);
+    				
+    			}
+
+      		}
 			
-			document.getElementById('latitude').value = vLat; // 緯度
-			document.getElementById('longitude').value = vLng; // 経度
-			
-	    },500);
+
+	    },1000);
  
 	    $('#zahyosend').click(function () {
 	    	
@@ -97,10 +368,12 @@
 		    
 	        // Ajax通信を開始する
 	        $.ajax({
-	            url: '/yui2/apiSmartfigure/login',
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/zahyosend',
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figurePersonId: 1,
 	            	latitude: Potition_latitude,
 	            	longitude: Potition_longitude,
 	            },
@@ -108,7 +381,7 @@
 	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
 	        .done(function (response) {
 	            $('#result').val('成功');
-	            $('#detail').val(response.data);
+	            $('#detail').val(response.geomData);
 	        })
 	        // ・サーバからステータスコード400以上が返ってきたとき
 	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
@@ -125,6 +398,182 @@
 	    function errorCallback(error) {
             $('#message').val("位置情報が許可されていません");
 	    }
+	    
+	    $('#nowzahyoget').click(function () {
+	    	
+	    	$('#message').val('位置情報取得します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    			navigator.geolocation.getCurrentPosition(successGetCallback,errorGetCallback);
+	    		} else {
+					$('#message').val("本ブラウザではGeolocationが使えません");
+	    		}
+
+
+	    });
+	    
+		 // 位置情報が正常に取得されたら
+	    function successGetCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/zahyoget',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figurePersonId: 1,
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	        	
+	            $('#result').val('成功');
+	            $('#id').val(response.id);
+	            $('#figure_id').val(response.figure_id);
+	            $('#lng').val(response.lng);
+	            $('#lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#result').val('失敗');
+	            $('#id').val("");
+	            $('#figure_id').val("");
+	            $('#lng').val("");
+	            $('#lat').val("");
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
+	    function errorGetCallback(error) {
+            $('#message').val("位置情報が許可されていません");
+	    }
+	    
+	    $('#locationstartsend').click(function () {
+	    	
+	    	$('#message').val('移動前位置情報をサーバーに送信します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    		navigator.geolocation.getCurrentPosition(successSendStartCallback,errorCallback);
+	    	} else {
+				$('#message').val("本ブラウザではGeolocationが使えません");
+	    	}
+
+	    });
+
+	    
+		 // 位置情報が正常に取得されたら
+	    function successSendStartCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/figereLocationStartSend',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figurePersonId: 1,
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	        	
+	            $('#start_result').val('成功');
+	            $('#start_id').val(response.id);
+	            $('#start_figure_id').val(response.figure_id);
+	            $('#start_lng').val(response.lng);
+	            $('#start_lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#start_result').val('失敗');
+	            $('#start_id').val("");
+	            $('#start_figure_id').val("");
+	            $('#start_lng').val("");
+	            $('#start_lat').val("");
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
+	    $('#locationtargetsend').click(function () {
+	    	
+	    	$('#message').val('移動前位置情報をサーバーに送信します');
+	    	
+	    	if (navigator.geolocation) {
+	    		// 現在の位置情報取得を実施 正常に位置情報が取得できると、
+	    		// successCallbackがコールバックされます。
+	    		navigator.geolocation.getCurrentPosition(successSendTargetCallback,errorCallback);
+	    	} else {
+				$('#message').val("本ブラウザではGeolocationが使えません");
+	    	}
+
+	    });
+
+	    
+		 // 位置情報が正常に取得されたら
+	    function successSendTargetCallback(pos) {
+		    var Potition_latitude = pos.coords.latitude;
+		    var Potition_longitude = pos.coords.longitude;
+		    
+	        // Ajax通信を開始する
+	        $.ajax({
+//	            url: 'zahyosend.php',
+	            url: '../cakephp2/json/figereLocationStartSend',
+	            type: 'post', // getかpostを指定(デフォルトは前者)
+	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+	            	figurePersonId: 1,
+	            	latitude: Potition_latitude,
+	            	longitude: Potition_longitude,
+	            },
+	        })
+	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+	        .done(function (response) {
+	        	
+	        	
+	            $('#target_result').val('成功');
+	            $('#target_id').val(response.id);
+	            $('#target_figure_id').val(response.figure_id);
+	            $('#target_lng').val(response.lng);
+	            $('#target_lat').val(response.lat);
+	        })
+	        // ・サーバからステータスコード400以上が返ってきたとき
+	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+	        // ・通信に失敗したとき
+	        .fail(function () {
+	            $('#target_result').val('失敗');
+	            $('#target_id').val("");
+	            $('#target_figure_id').val("");
+	            $('#target_lng').val("");
+	            $('#target_lat').val("");
+	        });
+		     
+		    // 位置情報が取得出来たらGoogle Mapを表示する
+//		    initialize(Potition_latitude,Potition_longitude);
+	    }
+	     
 
 	});
 </script>
@@ -141,6 +590,11 @@
 <input id="longitude" type="text" /><br>
 <input type="button" id="nowzahyosend" value="現在座標送信"><br>
 <input type="button" id="zahyosend" value="座標送信"><br>
+        <h1>アクティブキャラクター</h1>
+        <p>
+                <select id="activeperson">
+                </select>
+        </p>
         <h1>設定</h1>
         <p>
             年齢: <input type="text" id="age" value="24"><br>
@@ -149,10 +603,41 @@
         </p>
         <h1>結果</h1>
         <p>
+            距離: <input type="text" id="distance" value=""><br> 
+            推定時間: <input type="text" id="estimationtime" value="">時間<br> 
             可否: <input type="text" id="result" value=""><br> 
             内容: <input type="text" id="detail" value=""><br>
             メッセージ: <input type="text" id="message" value=""><br>
         </p>
+        <h1>現在地送信</h1>
+        <p>
+            可否: <input type="text" id="result" value=""><br> 
+            ID: <input type="text" id="id" value=""><br>
+            figure_id: <input type="text" id="figure_id" value=""><br>
+            lng: <input type="text" id="lng" value=""><br>
+            lat: <input type="text" id="lat" value=""><br>
+<input type="button" id="nowzahyoget" value="現在座受信"><br>
+        </p>
+        <h1>移動元送信</h1>
+        <p>
+            可否: <input type="text" id="start_result" value=""><br> 
+            ID: <input type="text" id="start_id" value=""><br>
+            figure_id: <input type="text" id="start_figure_id" value=""><br>
+            lng: <input type="text" id="start_lng" value=""><br>
+            lat: <input type="text" id="start_lat" value=""><br>
+<input type="button" id="locationstartsend" value="移動元送信"><br>
+        </p>
+        <h1>移動先送信</h1>
+        <p>
+            可否: <input type="text" id="target_result" value=""><br> 
+            ID: <input type="text" id="target_id" value=""><br>
+            figure_id: <input type="text" id="target_figure_id" value=""><br>
+            lng: <input type="text" id="target_lng" value=""><br>
+            lat: <input type="text" id="target_lat" value=""><br>
+<input type="button" id="locationtargetsend" value="移動先送信"><br>
+        </p>
+        
+        
         <script src="default.js"></script>
     </body>
     

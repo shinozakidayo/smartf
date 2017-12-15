@@ -38,7 +38,7 @@ class JsonController extends AppController{
  	
 
  	// POSTデータの取得
- 	$figereId = $this->request->data('figereId');
+ 	$figurePersonId = $this->request->data('figurePersonId');
 	$latitude = $this->request->data('latitude');
 	$longitude = $this->request->data('longitude');
  
@@ -46,13 +46,13 @@ class JsonController extends AppController{
 // 	$latitude = mt_rand(0.01,1.00);
 // 	$longitude = mt_rand(0.01,1.00);
 
- 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_id'=>$figereId));
+ 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_person_id'=>$figurePersonId));
  	
  	if($this->FigureLatlngPosition->find('count',$conditions) > 0){
- 		$this->FigureLatlngPosition->updategeom($figereId,$latitude,$longitude);
+ 		$this->FigureLatlngPosition->updategeom($figurePersonId,$latitude,$longitude);
  	}
  	else {
- 		$this->FigureLatlngPosition->insertgeom($figereId,$latitude,$longitude);
+ 		$this->FigureLatlngPosition->insertgeom($figurePersonId,$latitude,$longitude);
  	}
  	
 /* 	$data = array(
@@ -83,23 +83,23 @@ class JsonController extends AppController{
  	$this->response->type('application/json');
  	
  	// POSTデータの取得
- 	$figereId = $this->request->data('figereId');
- 	$latitude = $this->request->data('latitude');
- 	$longitude = $this->request->data('longitude');
-
-	if($latitude == null || $longitude == null){
+ 	$figurePersonId = $this->request->data('figurePersonId');
+	$latitude = $this->request->data('latitude');
+	$longitude = $this->request->data('longitude');
+ 	
+ 	if($latitude == null || $longitude == null || $figurePersonId == null){
 		$geomData = false;
  		$this->response->body(json_encode(compact('geomData')));
  		return true;
 	}
  	
- 	$conditions = array('conditions' => array('FigereLatlngLocationStart.figure_id'=>$figereId));
+ 	$conditions = array('conditions' => array('FigereLatlngLocationStart.figure_person_id'=>$figurePersonId));
  	
  	if($this->FigereLatlngLocationStart->find('count',$conditions) > 0){
- 		$this->FigereLatlngLocationStart->updategeom($figereId,$latitude,$longitude);
+ 		$this->FigereLatlngLocationStart->updategeom($figurePersonId,$latitude,$longitude);
  	}
  	else {
- 		$this->FigereLatlngLocationStart->insertgeom($figereId,$latitude,$longitude);
+ 		$this->FigereLatlngLocationStart->insertgeom($figurePersonId,$latitude,$longitude);
  	}
  	
  	$geomData = "{$latitude}lt、{$longitude}gt です";
@@ -108,6 +108,36 @@ class JsonController extends AppController{
  }
 
  function figereLocationTargetSend(){
+
+ 	$this->loadModel('FigereLatlngLocationTarget');
+ 	
+ 	// ①HTMLの表示はいらないため自動レンダリングをOFFにする
+ 	$this->autoRender = false;
+ 	// レスポンスの形式をJSONで指定
+ 	$this->response->type('application/json');
+ 	
+ 	// POSTデータの取得
+ 	$figurePersonId = $this->request->data('figurePersonId');
+ 	$latitude = $this->request->data('latitude');
+ 	$longitude = $this->request->data('longitude');
+ 	
+ 	if($latitude == null || $longitude == null || $figurePersonId == null){
+ 		$geomData = false;
+ 		$this->response->body(json_encode(compact('geomData')));
+ 		return true;
+ 	}
+ 	
+ 	$conditions = array('conditions' => array('FigereLatlngLocationTarget.figure_person_id'=>$figurePersonId));
+ 	
+ 	if($this->FigereLatlngLocationTarget->find('count',$conditions) > 0){
+ 		$this->FigereLatlngLocationTarget->updategeom($figurePersonId,$latitude,$longitude);
+ 	}
+ 	else {
+ 		$this->FigereLatlngLocationTarget->insertgeom($figurePersonId,$latitude,$longitude);
+ 	}
+ 	
+ 	$geomData = "{$latitude}lt、{$longitude}gt です";
+ 	$this->response->body(json_encode(compact('geomData')));
  
  }
 
@@ -129,11 +159,11 @@ class JsonController extends AppController{
  	$this->response->type('application/json');
  	
  	// POSTデータの取得
- 	$figereId = $this->request->data('figereId');
+ 	$figurePersonId = $this->request->data('figurePersonId');
 
  	$figereId = 1;
  	
- 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_id'=>$figereId));
+ 	$conditions = array('conditions' => array('FigureLatlngPosition.figure_person_id'=>$figurePersonId));
  	
  	
  	$geomData=$this->FigureLatlngPosition->find('first',$conditions);

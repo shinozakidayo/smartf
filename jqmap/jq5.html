@@ -8,11 +8,11 @@
 		var vLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
 		var vLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
 
-		var vTargetLat = 0;
-		var vTargetLng = 0;
+		var vTargetLat = new Array();
+		var vTargetLng = new Array();
 
-		var vStartLat = 0;
-		var vStartLng = 0;
+		var vStartLat = new Array();
+		var vStartLng = new Array();
 
 		var vSpeed = 100; // キロメートル
 		
@@ -118,14 +118,16 @@
 		google.maps.event.addListener(map, 'click', function(e)
 		{
 			// マーカーポジションを変更
-			marker.position = e.latLng;
+	    	var activeperson = $('#activeperson').val();
+
+//			marker[activeperson].position = e.latLng;
  
 			// 緯度経度をフォームにセット
 //			document.getElementById('latitude').value = e.latLng.lat(); // 緯度
 //			document.getElementById('longitude').value = e.latLng.lng(); // 経度
  
-			vTargetLat = e.latLng.lat();
-			vTargetLng = e.latLng.lng();
+			vTargetLat[activeperson] = e.latLng.lat();
+			vTargetLng[activeperson] = e.latLng.lng();
 			
 
 	        // Ajax通信を開始する
@@ -135,14 +137,13 @@
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
-	            	figureId: 1,
+	            	figurePersonId: activeperson,
 	            	latitude: e.latLng.lat(),
 	            	longitude: e.latLng.lng(),
 	            },
 	        })
 	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
 	        .done(function (response) {
-	        	
 	            $('#target_result').val('成功');
 	            $('#target_id').val(response.id);
 	            $('#target_figure_id').val(response.figure_id);
@@ -166,13 +167,17 @@
 	          navigator.geolocation.getCurrentPosition(
 	            // 取得成功した場合
 	            function(position) {
+	            	
+	    	    	var activeperson = $('#activeperson').val();
+
+
 	            	// 開始位置を保存
-					vStartLat = position.coords.latitude;
-					vStartLng = position.coords.longitude;
+					vStartLat[activeperson] = position.coords.latitude;
+					vStartLng[activeperson]  = position.coords.longitude;
 					
 	            	// 現在地も更新
-					vLat = position.coords.latitude;
-					vLng = position.coords.longitude;
+					vLat[activeperson]  = position.coords.latitude;
+					vLng[activeperson]  = position.coords.longitude;
             
 			      // 緯度・経度を変数に格納
 			      var mapLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
@@ -181,7 +186,7 @@
 			      // マップオブジェクト作成
 			      map.setCenter(mapLatLng);
 
-			      marker.setMap(map);
+			      marker[activeperson].setMap(map);
 			      
 //　マップにマーカーを表示する
 //			      var marker = new google.maps.Marker({
@@ -219,41 +224,55 @@
 		});
 		
 	    setInterval(function(){
-//	    	console.log("vLat" + vLat);
-//			vLat = vLat + 0.02;
-//			marker.position = new google.maps.LatLng( vLat,vLng );
-//			marker.setMap(map);
-			
-			document.getElementById('latitude').value = vLat; // 緯度
-			document.getElementById('longitude').value = vLng; // 経度
-			
-			var pos = [
-			           new google.maps.LatLng(vTargetLat, vTargetLng),
-			           new google.maps.LatLng(vStartLat, vStartLng)
-			       ];
-			var dist = google.maps.geometry.spherical.computeLength(pos);
+	    	
+	    	// 現在アクティブのキャラクターを取得
+	    	var activeperson = $('#activeperson').val();
+	    	
+        	for(let i = 0; i < vFigurePersonData.length; i++) {
+        		
+        		var figurePersonId = vFigurePersonData[i]["FigurePerson"].id;
+        		
+        		// 配列に添字がない場合は処理をしない（まだ目的地が設定されていない）
+        		if (!vLat[figurePersonId] || !vLng[figurePersonId] ||
+        			!vTargetLat[figurePersonId] || !vTargetLng[figurePersonId] ||
+        			!vStartLng[figurePersonId] || !vStartLng[figurePersonId]
+        			) {
+        			continue;
+        		}
+        		
+    			document.getElementById('latitude').value = vLat[figurePersonId]; // 緯度
+    			document.getElementById('longitude').value = vLng[figurePersonId]; // 経度
+    			
+    			var pos = [
+    			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLng[figurePersonId]),
+    			           new google.maps.LatLng(vStartLat[figurePersonId], vStartLng[figurePersonId])
+    			       ];
+    			var dist = google.maps.geometry.spherical.computeLength(pos);
 
-			document.getElementById('distance').value = dist;
-			
-			var time = dist / 1000 / vSpeed;
-			
-			document.getElementById('estimationtime').value = time;
-			
-			differenceLat = vTargetLat - vStartLat;
-			differenceLng = vTargetLng - vStartLng;
-			
-			if(time != 0){
-				
-				var moveLat = differenceLat / (time * 3600);
-				var moveLng = differenceLng / (time * 3600);
-				
-				vLat = vLat + moveLat;
-				vLng = vLng + moveLng;
+    			document.getElementById('distance').value = dist;
+    			
+    			var time = dist / 1000 / vSpeed;
+    			
+    			document.getElementById('estimationtime').value = time;
+    			
+    			differenceLat = vTargetLat[figurePersonId] - vStartLat[figurePersonId];
+    			differenceLng = vTargetLng[figurePersonId] - vStartLng[figurePersonId];
+    			
+    			if(time != 0){
+    				
+    				var moveLat = differenceLat / (time * 3600);
+    				var moveLng = differenceLng / (time * 3600);
+    				
+    				vLat[figurePersonId] = vLat[figurePersonId] + moveLat;
+    				vLng[figurePersonId] = vLng[figurePersonId] + moveLng;
 
-				marker.position = new google.maps.LatLng( vLat,vLng );
-				marker.setMap(map);
-				
-			}
+    				marker[figurePersonId].position = new google.maps.LatLng( vLat[figurePersonId],vLng[figurePersonId] );
+    				marker[figurePersonId].setMap(map);
+    				
+    			}
+
+      		}
+			
 
 	    },1000);
  
@@ -312,7 +331,7 @@
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
-	            	figureId: 1,
+	            	figurePersonId: 1,
 	            	latitude: Potition_latitude,
 	            	longitude: Potition_longitude,
 	            },
@@ -365,7 +384,7 @@
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
-	            	figureId: 1,
+	            	figurePersonId: 1,
 	            	latitude: Potition_latitude,
 	            	longitude: Potition_longitude,
 	            },
@@ -426,7 +445,7 @@
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
-	            	figureId: 1,
+	            	figurePersonId: 1,
 	            	latitude: Potition_latitude,
 	            	longitude: Potition_longitude,
 	            },
@@ -483,7 +502,7 @@
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
-	            	figureId: 1,
+	            	figurePersonId: 1,
 	            	latitude: Potition_latitude,
 	            	longitude: Potition_longitude,
 	            },
