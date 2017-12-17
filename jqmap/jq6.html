@@ -60,11 +60,29 @@
 	        		        .text(vFigurePersonData[i]["FigurePerson"].pname)
 	        		        .prop('selected', isSelected);
 	        		    $('#activeperson').append($option);
+	        		    
+	        		    var FigereLatlngLocationStart = null;
+	        		    
+	        		    if(vFigurePersonData[i]["FigereLatlngLocationStart"].created != null) {
+		        		    FigereLatlngLocationStart = new Date(vFigurePersonData[i]["FigereLatlngLocationStart"].created.replace(/-/g, '/'));
+		        		    
+		        		    // 開始時間から現在時間を引く経過時間を計算する
+		        		    $elapsedtime = subDataH(FigereLatlngLocationStart,new Date());
+		        		    
+		    	            $('#elapsedtime').val($('#elapsedtime').val() + "," + $elapsedtime);
+
+	        		    }
+	        		    
 	        	}
 	        	
 	        	marker = new Array();
 	        	
 	        	for(let i = 0; i < vFigurePersonData.length; i++) {
+	        		
+	        		
+	        		// 現在地の計算はっじめるよー
+//	    			position: new google.maps.LatLng( vLat[parseInt(vFigurePersonData[i]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[i]["FigurePerson"].id)] ),
+
 	        		
 	        		var iconOffset = new google.maps.Point(34, 34);
 	        		var iconPosition = new google.maps.Point(0, 0);
@@ -112,6 +130,32 @@
 
 		}
 		
+		// 時間の差を求める
+		function subDataH(datea,dateb){
+			
+			var retDate = (datea - dateb) / 1000; // ミリ秒が入っているので1000でわって秒数にして
+			retDate = retDate / 3600; // 3600 で割って時間に変換する
+			return retDate;
+		}
+		
+		// 到着予測時間をもとめる
+		function subEstimationTime(figurePersonId) {
+			
+			var pos = [
+			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLng[figurePersonId]),
+			           new google.maps.LatLng(vStartLat[figurePersonId], vStartLng[figurePersonId])
+			       ];
+			var dist = google.maps.geometry.spherical.computeLength(pos);
+
+			document.getElementById('distance').value = dist;
+			
+			var time = dist / 1000 / vSpeed;
+			
+			document.getElementById('estimationtime').value = time;
+			
+			return time;
+
+		}
 		
 
 		// マップクリックイベントを追加
@@ -594,6 +638,10 @@
         <p>
                 <select id="activeperson">
                 </select>
+        </p>
+        <h1>経過時間</h1>
+        <p>
+           <input type="text" id="elapsedtime" value="24"><br>
         </p>
         <h1>設定</h1>
         <p>

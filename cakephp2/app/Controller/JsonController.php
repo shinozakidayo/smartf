@@ -86,12 +86,22 @@ class JsonController extends AppController{
  	$figurePersonId = $this->request->data('figurePersonId');
 	$latitude = $this->request->data('latitude');
 	$longitude = $this->request->data('longitude');
+	
+//	var_dump(array($figurePersonId,$latitude,$longitude));
+
+/*	$this->FigereLatlngLocationStart->t();
+	
+	$this->response->body(json_encode(compact('geomData')));
+	
+	return true; */
  	
  	if($latitude == null || $longitude == null || $figurePersonId == null){
 		$geomData = false;
  		$this->response->body(json_encode(compact('geomData')));
  		return true;
 	}
+	
+	$figurePersonId = 3;
  	
  	$conditions = array('conditions' => array('FigereLatlngLocationStart.figure_person_id'=>$figurePersonId));
  	
@@ -206,8 +216,13 @@ class JsonController extends AppController{
  	
  	$this->log(json_encode($figurePersonData));
  	
+// 	$figurePersonData['now'] = DboSource::expression('NOW()');
+ 	
+// 	var_dump($figurePersonData);
+ 	
+// 	echo(json_encode($figurePersonData));
 // 	$this->response->body(json_encode($figurePerson));
- 	$this->response->body(json_encode($figurePersonData));
+ 	$this->response->body(json_encode($figurePersonData,JSON_PARTIAL_OUTPUT_ON_ERROR));
  	
  }
  

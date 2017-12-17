@@ -10,39 +10,25 @@ class FigureLatlngPosition extends AppModel {
     		'lat' => 'Y(latlng)'
     );
     
+    public function insertgeom($figurePersonId,$lat,$lan){
     
-/*	public function addData($figureId,$lat,$lan){
-		
-		echo("insert into {$this->useTable} (figure_id,latlng) ('{$figureId}',GeomFromText('POINT({$lat} {$lan}'));");
-		
-		$this->query("insert into {$this->useTable} (figure_id,latlng) ('{$figureId}',GeomFromText('POINT({$lat} {$lan}));");
-		
-		$this->insert($this->useDbConfig, [
-			'figure_id' => $figureId,
-			'latlng' => "GeomFromText('POINT({$lat} {$lan})')"
-			]);
-	} */
-	public function insertgeom($figurePersonId,$lat,$lan){
-//		$latlng = $this->query("SELECT GeomFromText('POINT(35.689　139.691)') as latlng");
-		
-//		$latlng = $this->query("SELECT GeomFromText('POINT(137.10 35.20)')");
-
-		if(is_numeric($figureId) == false || is_numeric($lat) == false || is_numeric($lan) == false){
-			return false;
-		}
-		
-		$latlng = $this->query("insert into {$this->useTable}(figure_person_id,latlng)  values('{$figurePersonId}',GeomFromText('POINT({$lat} {$lan})'));");
-
-		return true;
-		
-//		var_dump($latlng);
-	}
-	
-	public function updategeom($figurePersonId,$lat,$lan){
-	
-		$latlng = $this->query("update {$this->useTable} set latlng = GeomFromText('POINT({$lat} {$lan})') where figure_person_id = '{$figurePersonId}';");
-		
-	}
-	
-	
+//    	echo("insert into {$this->useTable}(figure_person_id,latlng)  values('{$figurePersonId}',GeomFromText('POINT({$lat} {$lan})'));");
+    
+    	$latlng = $this->query("insert into {$this->useTable}(figure_person_id,latlng)  values('{$figurePersonId}',GeomFromText('POINT({$lat} {$lan})'));");
+    
+    	return true;
+    }
+    
+/*    public function t(){
+    	echo("test1");
+    	$latlng = $this->query("insert into {$this->useTable}(figure_person_id,latlng)  values('1',GeomFromText('POINT(0.1 0.1)'));");
+    	echo("test1");
+    } */
+    
+    public function updategeom($figurePersonId,$lat,$lan){
+    
+    	$latlng = $this->query("update {$this->useTable} set latlng = GeomFromText('POINT({$lat} {$lan})') where figure_person_id = '{$figurePersonId}';");
+    
+    	return true;
+    }
 }
