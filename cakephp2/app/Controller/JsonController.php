@@ -87,6 +87,9 @@ class JsonController extends AppController{
 	$latitude = $this->request->data('latitude');
 	$longitude = $this->request->data('longitude');
 	
+	$this->log(print_r(array($figurePersonId,$latitude,$longitude),true));
+	
+	
 //	var_dump(array($figurePersonId,$latitude,$longitude));
 
 /*	$this->FigereLatlngLocationStart->t();
@@ -101,8 +104,6 @@ class JsonController extends AppController{
  		return true;
 	}
 	
-	$figurePersonId = 3;
- 	
  	$conditions = array('conditions' => array('FigereLatlngLocationStart.figure_person_id'=>$figurePersonId));
  	
  	if($this->FigereLatlngLocationStart->find('count',$conditions) > 0){

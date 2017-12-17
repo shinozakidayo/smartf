@@ -138,7 +138,7 @@
 			return retDate;
 		}
 		
-		// 到着予測時間をもとめる
+		// 到着予測のかかる時間を求める
 		function subEstimationTime(figurePersonId) {
 			
 			var pos = [
@@ -177,13 +177,13 @@
 	        // Ajax通信を開始する
 	        $.ajax({
 //	            url: 'zahyosend.php',
-	            url: '../cakephp2/json/figereLocationStartSend',
+	            url: '../cakephp2/json/figereLocationTargetSend',
 	            type: 'post', // getかpostを指定(デフォルトは前者)
 	            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
 	            	figurePersonId: activeperson,
-	            	latitude: e.latLng.lat(),
-	            	longitude: e.latLng.lng(),
+	            	latitude: vTargetLat[activeperson],
+	            	longitude: vTargetLng[activeperson],
 	            },
 	        })
 	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
@@ -231,6 +231,36 @@
 			      map.setCenter(mapLatLng);
 
 			      marker[activeperson].setMap(map);
+			      
+			      // Ajax通信を開始する
+			      $.ajax({
+			            url: '../cakephp2/json/figereLocationStartSend',
+			            type: 'post', // getかpostを指定(デフォルトは前者)
+			            dataType: 'json', // 「json」を指定するとresponseがJSONとしてパースされたオブジェクトになる
+			            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
+			            	figurePersonId: activeperson,
+			            	latitude: vStartLat[activeperson],
+			            	longitude: vStartLng[activeperson],
+			            },
+			      })
+			      // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
+			      .done(function (response) {
+			          $('#target_result').val('成功');
+			          $('#target_id').val(response.id);
+			          $('#target_figure_id').val(response.figure_id);
+			          $('#target_lng').val(vTargetLng[activeperson]);
+			          $('#target_lat').val(vTargetLat[activeperson]);
+			       })
+			        // ・サーバからステータスコード400以上が返ってきたとき
+			        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
+			        // ・通信に失敗したとき
+			        .fail(function () {
+			            $('#target_result').val('失敗');
+			            $('#target_id').val("");
+			            $('#target_figure_id').val("");
+			            $('#target_lng').val("");
+			            $('#target_lat').val("");
+			        });
 			      
 //　マップにマーカーを表示する
 //			      var marker = new google.maps.Marker({

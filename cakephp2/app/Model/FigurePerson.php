@@ -26,12 +26,12 @@ class FigurePerson extends AppModel {
 				'lat' => 'Y(FigereLatlngLocationStart.latlng)'
 		);
 		$this->FigereLatlngLocationTarget->virtualFields = array(
-				'lng' => 'X(FigereLatlngLocationStart.latlng)',
-				'lat' => 'Y(FigereLatlngLocationStart.latlng)'
+				'lng' => 'X(FigereLatlngLocationTarget.latlng)',
+				'lat' => 'Y(FigereLatlngLocationTarget.latlng)'
 		);
 		$this->FigureLatlngPosition->virtualFields = array(
-				'lng' => 'X(FigereLatlngLocationStart.latlng)',
-				'lat' => 'Y(FigereLatlngLocationStart.latlng)'
+				'lng' => 'X(FigureLatlngPosition.latlng)',
+				'lat' => 'Y(FigureLatlngPosition.latlng)'
 		);
 		
 		return true;
