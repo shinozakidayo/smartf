@@ -53,6 +53,40 @@
 //						vFigurePersonData[i]["FigurePerson"].id;
 //						vFigurePersonData[i]["FigurePerson"].pname;
 //						vFigurePersonData[i]["FigurePerson"].img;
+
+						vStartLng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationStart"].lng;
+						vStartLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationStart"].lat;
+						vTargetlng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lng;
+						vTargetLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lat;
+						
+						// 推定到着時間
+						var estimationtime = subEstimationTime(vFigurePersonData[i]["FigurePerson"].id);
+						
+						// 現在の時刻を取得
+						var dateNow = new Date();
+						var timeNow = dateNow.getTime();
+						
+						// 現在の時刻を取得
+						var dateNow = new Date();
+						var timeNow = dateNow.getTime();
+						
+						
+						var dateStart = new Date(vFigurePersonData[i]["FigereLatlngLocationStart"].starttime.replace(/-/g, '/'));
+						var timeStart = dateStart.getTime();
+
+						// 開始から何時間たったかを取得
+						var elapsedTime = subDataH(timeStart,timeNow);
+
+						// 全体の時間からどれだけ移動したかを取得
+						var proportiontime = elapsedTime / estimationtime;
+						
+						// 移動距離を算出
+						var moveLng = (vStartLng[vFigurePersonData[i]["FigurePerson"].id] - vTargetlng[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
+						var moveLat = (vStartLat[vFigurePersonData[i]["FigurePerson"].id] - vTargetLat[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
+						
+						// 移動した分を現在地に格納
+						vLng[vFigurePersonData[i]["FigurePerson"].id] = moveLng + vStartLng[vFigurePersonData[i]["FigurePerson"].id];
+						vLat[vFigurePersonData[i]["FigurePerson"].id] = moveLat + vStartLat[vFigurePersonData[i]["FigurePerson"].id];
 						
 	        		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
 	        		    $option = $('<option>')
