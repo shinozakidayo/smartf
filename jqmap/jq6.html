@@ -5,8 +5,11 @@
 
 		var vFigurePersonData = null;
 		
-		var vLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
-		var vLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
+//		var vLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
+//		var vLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
+
+		var vLat = new Array();
+		var vLng = new Array();
 
 		var vTargetLat = new Array();
 		
@@ -36,8 +39,8 @@
 			
 			// MAPを生成
 			map = new google.maps.Map(document.getElementById("map_canvas"), {
-				zoom: 8, // 拡大値
-				center: new google.maps.LatLng(vLat[1],vLng[1]), // 初期表示の座標
+				zoom: 14, // 拡大値
+//				center: new google.maps.LatLng(vLat[1],vLng[1]), // 初期表示の座標
 				mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
 				scaleControl: true,
 				scrollwheel: true // スケールの表示（距離の目安）
@@ -93,20 +96,31 @@
 						
 						if(proportiontime > 1){
 							// 移動した分を現在地に格納
-							vLng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lng;
-							vLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lat;
+							vLng[vFigurePersonData[i]["FigurePerson"].id] = Number(vFigurePersonData[i]["FigereLatlngLocationTarget"].lng);
+							vLat[vFigurePersonData[i]["FigurePerson"].id] = Number(vFigurePersonData[i]["FigereLatlngLocationTarget"].lat);
 							
 						}
 						else {
 							// 移動距離を算出
-							var moveLng = (vStartLng[vFigurePersonData[i]["FigurePerson"].id] - vTargetLngLng[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
-							var moveLat = (vStartLat[vFigurePersonData[i]["FigurePerson"].id] - vTargetLat[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
+							var moveLng = (Number(vTargetLngLng[vFigurePersonData[i]["FigurePerson"].id]) - Number(vStartLng[vFigurePersonData[i]["FigurePerson"].id])) * proportiontime;
+							var moveLat = (Number(vTargetLat[vFigurePersonData[i]["FigurePerson"].id]) - Number(vStartLat[vFigurePersonData[i]["FigurePerson"].id])) * proportiontime;
 
 							// 移動した分を現在地に格納
 							vLng[vFigurePersonData[i]["FigurePerson"].id] = (moveLng + Number(vStartLng[vFigurePersonData[i]["FigurePerson"].id]));
 							vLat[vFigurePersonData[i]["FigurePerson"].id] = (moveLat + Number(vStartLat[vFigurePersonData[i]["FigurePerson"].id]));
 
 						}
+						
+			        	$('#loadlng').val(vLng[1]);
+			        	$('#loadlat').val(vLat[1]);
+			        	
+			        	$('#readtargetlng').val(vFigurePersonData[i]["FigereLatlngLocationTarget"].lng);
+			        	$('#readtargetlat').val(vFigurePersonData[i]["FigereLatlngLocationTarget"].lat);
+			        	
+			        	$('#readstartlng').val(vFigurePersonData[i]["FigereLatlngLocationStart"].lng);
+			        	$('#readstartlat').val(vFigurePersonData[i]["FigereLatlngLocationStart"].lat);
+			        	
+
 	        		}
 						
         		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
@@ -131,6 +145,7 @@
 
 	        		    
 	        	}
+	        	
 	        	
 	        	marker = new Array();
 	        	
@@ -177,7 +192,7 @@
 
 	        	map.panTo(new google.maps.LatLng(vLat[activeperson],vLng[activeperson]));
 
-	        	map.setZoom(12);
+	        	map.setZoom(14);
 	     
 	        })
 	        // ・サーバからステータスコード400以上が返ってきたとき
@@ -232,6 +247,11 @@
 			vTargetLat[activeperson] = e.latLng.lat();
 			vTargetLngLng[activeperson] = e.latLng.lng();
 			
+			
+        	$('#sendtargetlng').val(vTargetLngLng[activeperson]);
+        	$('#sendtargetlat').val(vTargetLat[activeperson]);
+        	
+
 
 	        // Ajax通信を開始する
 	        $.ajax({
@@ -277,6 +297,9 @@
 	            	// 開始位置を保存
 					vStartLat[activeperson] = position.coords.latitude;
 					vStartLng[activeperson]  = position.coords.longitude;
+
+		        	$('#sendstartlat').val(vStartLat[activeperson]);
+		        	$('#sendstartlng').val(vStartLng[activeperson]);
 					
 	            	// 現在地も更新
 					vLat[activeperson]  = position.coords.latitude;
@@ -289,7 +312,7 @@
 			      // マップオブジェクト作成
 			      map.setCenter(mapLatLng);
 
-			      marker[activeperson].setMap(map);
+//			      marker[activeperson].setMap(map);
 			      
 			      // Ajax通信を開始する
 			      $.ajax({
@@ -441,8 +464,10 @@
     					
     				}
 
-    				marker[figurePersonId].position = new google.maps.LatLng( vLat[figurePersonId],vLng[figurePersonId] );
+    				marker[figurePersonId].position = new google.maps.LatLng( vLat[activeperson],vLng[activeperson] );
     				marker[figurePersonId].setMap(map);
+  			        map.setCenter(marker[figurePersonId].position);
+
     				
     			}
 
@@ -723,6 +748,31 @@
 <input id="longitude" type="text" /><br>
 <input type="button" id="nowzahyosend" value="現在座標送信"><br>
 <input type="button" id="zahyosend" value="座標送信"><br>
+        <h1>リロード時の位置</h1>
+        <p>
+            lng: <input type="text" id="loadlng" value=""><br>
+            lat: <input type="text" id="loadlat" value=""><br>
+        </p>
+        <h1>取得データ目標</h1>
+        <p>
+            lng: <input type="text" id="readtargetlng" value=""><br>
+            lat: <input type="text" id="readtargetlat" value=""><br>
+        </p>
+        <h1>取得データ開始位置</h1>
+        <p>
+            lng: <input type="text" id="readstartlng" value=""><br>
+            lat: <input type="text" id="readstartlat" value=""><br>
+        </p>
+        <h1>送信時の位置目標</h1>
+        <p>
+            lng: <input type="text" id="sendtargetlng" value=""><br>
+            lat: <input type="text" id="sendtargetlat" value=""><br>
+        </p>
+        <h1>送信時の位置開始</h1>
+        <p>
+            lng: <input type="text" id="sendstartlng" value=""><br>
+            lat: <input type="text" id="sendstartlat" value=""><br>
+        </p>
         <h1>アクティブキャラクター</h1>
         <p>
                 <select id="activeperson">
