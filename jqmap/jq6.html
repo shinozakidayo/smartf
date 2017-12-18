@@ -9,7 +9,8 @@
 		var vLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
 
 		var vTargetLat = new Array();
-		var vTargetLng = new Array();
+		
+		var vTargetLngLng = new Array();
 
 		var vStartLat = new Array();
 		var vStartLng = new Array();
@@ -20,20 +21,28 @@
 		
 		var marker =  null;
 
-		// MAPを生成
-		map = new google.maps.Map(document.getElementById("map_canvas"), {
-			zoom: 8, // 拡大値
-			center: new google.maps.LatLng(vLat[1],vLng[1]), // 初期表示の座標
-			mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
-			scaleControl: true,
-			scrollwheel: true // スケールの表示（距離の目安）
-		});
 
 		// dataの初期化を行う
 		initData();
 		
 		function initData(){
 			
+			vTargetLat = new Array();
+			vTargetLngLng = new Array();
+
+			vStartLat = new Array();
+			vStartLng = new Array();
+
+			
+			// MAPを生成
+			map = new google.maps.Map(document.getElementById("map_canvas"), {
+				zoom: 8, // 拡大値
+				center: new google.maps.LatLng(vLat[1],vLng[1]), // 初期表示の座標
+				mapTypeId: google.maps.MapTypeId.ROADMAP, // 地図のタイプ
+				scaleControl: true,
+				scrollwheel: true // スケールの表示（距離の目安）
+			});
+
 	        // Ajax通信を開始する
 	        $.ajax({
 //	            url: 'zahyosend.php',
@@ -48,64 +57,78 @@
 	            $('#result').val('成功');
 	        	vFigurePersonData = response;
 	        	
-	        	for(let i = 0; i < vFigurePersonData.length; i++) {
-//	        		  console.log(vFigurePersonData[i]);
-//						vFigurePersonData[i]["FigurePerson"].id;
-//						vFigurePersonData[i]["FigurePerson"].pname;
-//						vFigurePersonData[i]["FigurePerson"].img;
+				vTargetLat = new Array();
+				vTargetLngLng = new Array();
 
+				vStartLat = new Array();
+				vStartLng = new Array();
+
+	        	
+	        	for(let i = 0; i < vFigurePersonData.length; i++) {
+	        		
+	        		// 一回もマップをクリックしたことが無い場合は初期位置の計算をしない
+	        		if(vFigurePersonData[i]["FigereLatlngLocationStart"].id != null) {
+	        		
+						vTargetLngLng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lng;
+						vTargetLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lat;
 						vStartLng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationStart"].lng;
 						vStartLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationStart"].lat;
-						vTargetlng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lng;
-						vTargetLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lat;
 						
 						// 推定到着時間
 						var estimationtime = subEstimationTime(vFigurePersonData[i]["FigurePerson"].id);
 						
 						// 現在の時刻を取得
-						var dateNow = new Date();
+						var dateNow = new Date(vFigurePersonData[i]["FigereLatlngLocationStart"].now.replace(/-/g, '/'));
 						var timeNow = dateNow.getTime();
-						
-						// 現在の時刻を取得
-						var dateNow = new Date();
-						var timeNow = dateNow.getTime();
-						
 						
 						var dateStart = new Date(vFigurePersonData[i]["FigereLatlngLocationStart"].starttime.replace(/-/g, '/'));
 						var timeStart = dateStart.getTime();
 
 						// 開始から何時間たったかを取得
-						var elapsedTime = subDataH(timeStart,timeNow);
+						var elapsedTime = subDataH(timeNow,timeStart);
 
 						// 全体の時間からどれだけ移動したかを取得
 						var proportiontime = elapsedTime / estimationtime;
 						
-						// 移動距離を算出
-						var moveLng = (vStartLng[vFigurePersonData[i]["FigurePerson"].id] - vTargetlng[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
-						var moveLat = (vStartLat[vFigurePersonData[i]["FigurePerson"].id] - vTargetLat[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
 						
-						// 移動した分を現在地に格納
-						vLng[vFigurePersonData[i]["FigurePerson"].id] = moveLng + vStartLng[vFigurePersonData[i]["FigurePerson"].id];
-						vLat[vFigurePersonData[i]["FigurePerson"].id] = moveLat + vStartLat[vFigurePersonData[i]["FigurePerson"].id];
-						
-	        		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
-	        		    $option = $('<option>')
-	        		        .val(vFigurePersonData[i]["FigurePerson"].id)
-	        		        .text(vFigurePersonData[i]["FigurePerson"].pname)
-	        		        .prop('selected', isSelected);
-	        		    $('#activeperson').append($option);
-	        		    
-	        		    var FigereLatlngLocationStart = null;
-	        		    
-	        		    if(vFigurePersonData[i]["FigereLatlngLocationStart"].created != null) {
-		        		    FigereLatlngLocationStart = new Date(vFigurePersonData[i]["FigereLatlngLocationStart"].created.replace(/-/g, '/'));
-		        		    
-		        		    // 開始時間から現在時間を引く経過時間を計算する
-		        		    $elapsedtime = subDataH(FigereLatlngLocationStart,new Date());
-		        		    
-		    	            $('#elapsedtime').val($('#elapsedtime').val() + "," + $elapsedtime);
+						if(proportiontime > 1){
+							// 移動した分を現在地に格納
+							vLng[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lng;
+							vLat[vFigurePersonData[i]["FigurePerson"].id] = vFigurePersonData[i]["FigereLatlngLocationTarget"].lat;
+							
+						}
+						else {
+							// 移動距離を算出
+							var moveLng = (vStartLng[vFigurePersonData[i]["FigurePerson"].id] - vTargetLngLng[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
+							var moveLat = (vStartLat[vFigurePersonData[i]["FigurePerson"].id] - vTargetLat[vFigurePersonData[i]["FigurePerson"].id]) * proportiontime;
 
-	        		    }
+							// 移動した分を現在地に格納
+							vLng[vFigurePersonData[i]["FigurePerson"].id] = (moveLng + Number(vStartLng[vFigurePersonData[i]["FigurePerson"].id]));
+							vLat[vFigurePersonData[i]["FigurePerson"].id] = (moveLat + Number(vStartLat[vFigurePersonData[i]["FigurePerson"].id]));
+
+						}
+	        		}
+						
+        		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
+        		    $option = $('<option>')
+        		        .val(vFigurePersonData[i]["FigurePerson"].id)
+        		        .text(vFigurePersonData[i]["FigurePerson"].pname)
+        		        .prop('selected', isSelected);
+        		    $('#activeperson').append($option);
+        		    
+        		    var FigereLatlngLocationStart = null;
+        		    
+        		    if(vFigurePersonData[i]["FigereLatlngLocationStart"].created != null) {
+	        		    FigereLatlngLocationStart = new Date(vFigurePersonData[i]["FigereLatlngLocationStart"].created.replace(/-/g, '/'));
+	        		    
+	        		    // 開始時間から現在時間を引く経過時間を計算する
+	        		    $elapsedtime = subDataH(FigereLatlngLocationStart,new Date());
+	        		    
+	    	            $('#elapsedtime').val($('#elapsedtime').val() + "," + $elapsedtime);
+
+        		    }
+        		    
+
 	        		    
 	        	}
 	        	
@@ -149,9 +172,11 @@
 
 	    		
 	        	}
-
-	        	map.panTo(new google.maps.LatLng(vLat[parseInt(vFigurePersonData[1]["FigurePerson"].id)],vLng[parseInt(vFigurePersonData[1]["FigurePerson"].id)]));
 	        	
+		    	var activeperson = $('#activeperson').val();
+
+	        	map.panTo(new google.maps.LatLng(vLat[activeperson],vLng[activeperson]));
+
 	        	map.setZoom(12);
 	     
 	        })
@@ -176,7 +201,7 @@
 		function subEstimationTime(figurePersonId) {
 			
 			var pos = [
-			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLng[figurePersonId]),
+			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLngLng[figurePersonId]),
 			           new google.maps.LatLng(vStartLat[figurePersonId], vStartLng[figurePersonId])
 			       ];
 			var dist = google.maps.geometry.spherical.computeLength(pos);
@@ -205,7 +230,7 @@
 //			document.getElementById('longitude').value = e.latLng.lng(); // 経度
  
 			vTargetLat[activeperson] = e.latLng.lat();
-			vTargetLng[activeperson] = e.latLng.lng();
+			vTargetLngLng[activeperson] = e.latLng.lng();
 			
 
 	        // Ajax通信を開始する
@@ -217,7 +242,7 @@
 	            data: { // 送信データを指定(getの場合は自動的にurlの後ろにクエリとして付加される)
 	            	figurePersonId: activeperson,
 	            	latitude: vTargetLat[activeperson],
-	            	longitude: vTargetLng[activeperson],
+	            	longitude: vTargetLngLng[activeperson],
 	            },
 	        })
 	        // ・ステータスコードは正常で、dataTypeで定義したようにパース出来たとき
@@ -225,7 +250,7 @@
 	            $('#target_result').val('成功');
 	            $('#target_id').val(response.id);
 	            $('#target_figure_id').val(response.figure_id);
-	            $('#target_lng').val(vTargetLng[activeperson]);
+	            $('#target_lng').val(vTargetLngLng[activeperson]);
 	            $('#target_lat').val(vTargetLat[activeperson]);
 	        })
 	        // ・サーバからステータスコード400以上が返ってきたとき
@@ -282,7 +307,7 @@
 			          $('#target_result').val('成功');
 			          $('#target_id').val(response.id);
 			          $('#target_figure_id').val(response.figure_id);
-			          $('#target_lng').val(vTargetLng[activeperson]);
+			          $('#target_lng').val(vTargetLngLng[activeperson]);
 			          $('#target_lat').val(vTargetLat[activeperson]);
 			       })
 			        // ・サーバからステータスコード400以上が返ってきたとき
@@ -342,7 +367,7 @@
         		
         		// 配列に添字がない場合は処理をしない（まだ目的地が設定されていない）
         		if (!vLat[figurePersonId] || !vLng[figurePersonId] ||
-        			!vTargetLat[figurePersonId] || !vTargetLng[figurePersonId] ||
+        			!vTargetLat[figurePersonId] || !vTargetLngLng[figurePersonId] ||
         			!vStartLng[figurePersonId] || !vStartLng[figurePersonId]
         			) {
         			continue;
@@ -352,7 +377,7 @@
     			document.getElementById('longitude').value = vLng[figurePersonId]; // 経度
     			
     			var pos = [
-    			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLng[figurePersonId]),
+    			           new google.maps.LatLng(vTargetLat[figurePersonId], vTargetLngLng[figurePersonId]),
     			           new google.maps.LatLng(vStartLat[figurePersonId], vStartLng[figurePersonId])
     			       ];
     			var dist = google.maps.geometry.spherical.computeLength(pos);
@@ -364,7 +389,7 @@
     			document.getElementById('estimationtime').value = time;
     			
     			differenceLat = vTargetLat[figurePersonId] - vStartLat[figurePersonId];
-    			differenceLng = vTargetLng[figurePersonId] - vStartLng[figurePersonId];
+    			differenceLng = vTargetLngLng[figurePersonId] - vStartLng[figurePersonId];
     			
     			if(time != 0){
  
@@ -395,23 +420,23 @@
     				var moveLng = 0;
     				if(differenceLng > 0){
     					
-    					if(vTargetLng[figurePersonId] > vLng[figurePersonId]){
+    					if(vTargetLngLng[figurePersonId] > vLng[figurePersonId]){
 							moveLng = differenceLng / (time * 3600);
 		    				vLng[figurePersonId] = vLng[figurePersonId] + moveLng;
 						}
 						else {
-    						vLng[figurePersonId] = vTargetLng[figurePersonId];
+    						vLng[figurePersonId] = vTargetLngLng[figurePersonId];
 						}
 
     				}
     				else {
     					
-    					if(vTargetLng[figurePersonId] < vLng[figurePersonId]){
+    					if(vTargetLngLng[figurePersonId] < vLng[figurePersonId]){
 							moveLng = differenceLng / (time * 3600);
 		    				vLng[figurePersonId] = vLng[figurePersonId] + moveLng;
 						}
     					else {
-    						vLng[figurePersonId] = vTargetLng[figurePersonId];
+    						vLng[figurePersonId] = vTargetLngLng[figurePersonId];
     					}
     					
     				}

@@ -23,7 +23,8 @@ class FigurePerson extends AppModel {
 		// ただbeforeSelectはアソシエーション側に書いても動作しない
 		$this->FigereLatlngLocationStart->virtualFields = array(
 				'lng' => 'X(FigereLatlngLocationStart.latlng)',
-				'lat' => 'Y(FigereLatlngLocationStart.latlng)'
+				'lat' => 'Y(FigereLatlngLocationStart.latlng)',
+				'now' => 'NOW()'
 		);
 		$this->FigereLatlngLocationTarget->virtualFields = array(
 				'lng' => 'X(FigereLatlngLocationTarget.latlng)',

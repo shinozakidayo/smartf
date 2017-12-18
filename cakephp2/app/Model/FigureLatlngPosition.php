@@ -14,7 +14,7 @@ class FigureLatlngPosition extends AppModel {
     
 //    	echo("insert into {$this->useTable}(figure_person_id,latlng)  values('{$figurePersonId}',GeomFromText('POINT({$lat} {$lan})'));");
     
-    	$latlng = $this->query("insert into {$this->useTable}(figure_person_id,latlng,created,starttime)  values('{$figurePersonId}',GeomFromText('POINT({$lat} {$lan})'),now(),now());");
+    	$latlng = $this->query("insert into {$this->useTable}(figure_person_id,latlng,created,starttime)  values('{$figurePersonId}',GeomFromText('POINT({$lan} {$lat})'),now(),now());");
     
     	return true;
     }
@@ -27,7 +27,7 @@ class FigureLatlngPosition extends AppModel {
     
     public function updategeom($figurePersonId,$lat,$lan){
     
-    	$latlng = $this->query("update {$this->useTable} set latlng = GeomFromText('POINT({$lat} {$lan})'),modified = now(),starttime = now() where figure_person_id = '{$figurePersonId}';");
+    	$latlng = $this->query("update {$this->useTable} set latlng = GeomFromText('POINT({$lan} {$lat})'),modified = now(),starttime = now() where figure_person_id = '{$figurePersonId}';");
     
     	return true;
     }
