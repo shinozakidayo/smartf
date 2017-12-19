@@ -1,4 +1,5 @@
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDflFZ9FAhRLXn1qTOC5asYzsYnbbyXcv0&libraries=geometry"></script>
 <script>
 	$(function(){
@@ -11,6 +12,10 @@
 		var vLat = new Array();
 		var vLng = new Array();
 
+		var vFLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
+		var vFLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
+
+		
 		var vTargetLat = new Array();
 		
 		var vTargetLngLng = new Array();
@@ -111,8 +116,8 @@
 
 						}
 						
-			        	$('#loadlng').val(vLng[1]);
-			        	$('#loadlat').val(vLat[1]);
+			        	$('#loadlng').val(vLng[vFigurePersonData[i]["FigurePerson"].id]);
+			        	$('#loadlat').val(vLat[vFigurePersonData[i]["FigurePerson"].id]);
 			        	
 			        	$('#readtargetlng').val(vFigurePersonData[i]["FigereLatlngLocationTarget"].lng);
 			        	$('#readtargetlat').val(vFigurePersonData[i]["FigereLatlngLocationTarget"].lat);
@@ -121,6 +126,14 @@
 			        	$('#readstartlat').val(vFigurePersonData[i]["FigereLatlngLocationStart"].lat);
 			        	
 
+	        		}
+	        		else {
+						vTargetLngLng[vFigurePersonData[i]["FigurePerson"].id] = vFLng[i];
+						vTargetLat[vFigurePersonData[i]["FigurePerson"].id] = vFLat[i];
+						vStartLng[vFigurePersonData[i]["FigurePerson"].id] = vFLng[i];
+						vStartLat[vFigurePersonData[i]["FigurePerson"].id] = vFLat[i];
+	        			vLng[vFigurePersonData[i]["FigurePerson"].id] = vFLng[i];
+	        			vLat[vFigurePersonData[i]["FigurePerson"].id] = vFLat[i];
 	        		}
 						
         		    isSelected = (vFigurePersonData[i]["FigurePerson"].id == '1');
@@ -464,11 +477,18 @@
     					
     				}
 
-    				marker[figurePersonId].position = new google.maps.LatLng( vLat[activeperson],vLng[activeperson] );
+    				marker[figurePersonId].position = new google.maps.LatLng( vLat[figurePersonId],vLng[figurePersonId] );
     				marker[figurePersonId].setMap(map);
-  			        map.setCenter(marker[figurePersonId].position);
-
     				
+    			    if(figurePersonId == activeperson){
+    			    	
+        			    // 緯度・経度を変数に格納
+        			    var mapLatLng = new google.maps.LatLng(vLat[activeperson], vLng[activeperson]);
+        			    // アクティブなキャラをセンターにする
+        			    map.setCenter(mapLatLng);
+    			    	
+    			    }
+
     			}
 
       		}
@@ -732,6 +752,18 @@
 //		    initialize(Potition_latitude,Potition_longitude);
 	    }
 	     
+	    //アクティブキャラが切り替わったら発動
+	    $('activeperson').change(function() {
+	   
+	      //選択したvalue値を変数に格納
+	      var val = $(this).val();
+	      
+	      // 緯度・経度を変数に格納
+	      var mapLatLng = new google.maps.LatLng(vLat[val], vLng[val]);
+	      // アクティブなキャラをセンターにする
+	      map.setCenter(mapLatLng);
+
+	    });
 
 	});
 </script>
