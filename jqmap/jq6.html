@@ -12,6 +12,8 @@
 		var vLat = new Array();
 		var vLng = new Array();
 
+		var vFSpeed = new Array();
+
 		var vFLat = {1:37.693489,2:37.684489,3:37.675489,4:37.666489,5:37.657489,6:37.698489};
 		var vFLng = {1:139.486611,2:139.486611,3:139.486611,4:139.486611,5:139.486611,6:139.486611};
 
@@ -23,11 +25,16 @@
 		var vStartLat = new Array();
 		var vStartLng = new Array();
 
-		var vSpeed = 100; // キロメートル
+		var vSpeed = 30; // キロメートル
 		
 		var map = null;
 		
 		var marker =  null;
+
+		var initDataFlg1 = false;
+		var initDataFlg2 = false;
+		
+		$('#speed').val(vSpeed);
 
 
 		// dataの初期化を行う
@@ -40,7 +47,6 @@
 
 			vStartLat = new Array();
 			vStartLng = new Array();
-
 			
 			// MAPを生成
 			map = new google.maps.Map(document.getElementById("map_canvas"), {
@@ -235,8 +241,16 @@
 			var dist = google.maps.geometry.spherical.computeLength(pos);
 
 			document.getElementById('distance').value = dist;
-			
-			var time = dist / 1000 / vSpeed;
+
+			if(vFSpeed[figurePersonId]){
+
+				var time = dist / 1000 / vFSpeed[figurePersonId];
+
+			}
+			else {
+				var time = dist / 1000 / vSpeed;
+				
+			}
 			
 			document.getElementById('estimationtime').value = time;
 			
@@ -285,6 +299,8 @@
 	            $('#target_figure_id').val(response.figure_id);
 	            $('#target_lng').val(vTargetLngLng[activeperson]);
 	            $('#target_lat').val(vTargetLat[activeperson]);
+	            // 初期化フラグを立てる
+				initDataFlg1 = true;
 	        })
 	        // ・サーバからステータスコード400以上が返ってきたとき
 	        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
@@ -345,6 +361,9 @@
 			          $('#target_figure_id').val(response.figure_id);
 			          $('#target_lng').val(vTargetLngLng[activeperson]);
 			          $('#target_lat').val(vTargetLat[activeperson]);
+			          // 初期化フラグを立てる
+					  initDataFlg2 = true;
+
 			       })
 			        // ・サーバからステータスコード400以上が返ってきたとき
 			        // ・ステータスコードは正常だが、dataTypeで定義したようにパース出来なかったとき
@@ -394,6 +413,12 @@
 		
 	    setInterval(function(){
 	    	
+	    	if(initDataFlg1 == true && initDataFlg2 == true){
+	    		initData();
+	    		initDataFlg1 = false;
+	    		initDataFlg2 = false;
+	    	}
+	    	
 	    	// 現在アクティブのキャラクターを取得
 	    	var activeperson = $('#activeperson').val();
 	    	
@@ -420,7 +445,17 @@
 
     			document.getElementById('distance').value = dist;
     			
-    			var time = dist / 1000 / vSpeed;
+    			
+    			if(vFSpeed[figurePersonId]){
+
+    				var time = dist / 1000 / vFSpeed[activeperson];
+
+    			}
+    			else {
+    				
+    				var time = dist / 1000 / vSpeed;
+    				
+    			}
     			
     			document.getElementById('estimationtime').value = time;
     			
@@ -765,6 +800,14 @@
 
 	    });
 
+	    //スピードボタンが押されたら実行
+	    $('#speedset').on('click', function() {
+	    	
+	    	// 現在アクティブのキャラクターを取得
+	    	var activeperson = $('#activeperson').val();
+	    	vFSpeed[activeperson] = $('#speed').val();
+
+	    });
 	});
 </script>
 
@@ -780,35 +823,23 @@
 <input id="longitude" type="text" /><br>
 <input type="button" id="nowzahyosend" value="現在座標送信"><br>
 <input type="button" id="zahyosend" value="座標送信"><br>
-        <h1>リロード時の位置</h1>
-        <p>
-            lng: <input type="text" id="loadlng" value=""><br>
-            lat: <input type="text" id="loadlat" value=""><br>
-        </p>
-        <h1>取得データ目標</h1>
-        <p>
-            lng: <input type="text" id="readtargetlng" value=""><br>
-            lat: <input type="text" id="readtargetlat" value=""><br>
-        </p>
-        <h1>取得データ開始位置</h1>
-        <p>
-            lng: <input type="text" id="readstartlng" value=""><br>
-            lat: <input type="text" id="readstartlat" value=""><br>
-        </p>
-        <h1>送信時の位置目標</h1>
-        <p>
-            lng: <input type="text" id="sendtargetlng" value=""><br>
-            lat: <input type="text" id="sendtargetlat" value=""><br>
-        </p>
-        <h1>送信時の位置開始</h1>
-        <p>
-            lng: <input type="text" id="sendstartlng" value=""><br>
-            lat: <input type="text" id="sendstartlat" value=""><br>
-        </p>
+
         <h1>アクティブキャラクター</h1>
         <p>
                 <select id="activeperson">
                 </select>
+        </p>
+        <h1>スピード</h1>
+        <p>
+           <input type="text" id="speed" value="100"><br>
+           <input type="button" id="speedset" value="送信"><br>
+        </p>
+        <h1>移動モード</h1>
+        <p>
+           <select id="movemode">
+           <option value="1">ユーザー現在位置スタート</option>
+           <option value="2">フィギュア現在位置スタート</option>
+           </select>
         </p>
         <h1>経過時間</h1>
         <p>
@@ -855,7 +886,31 @@
             lat: <input type="text" id="target_lat" value=""><br>
 <input type="button" id="locationtargetsend" value="移動先送信"><br>
         </p>
-        
+        <h1>リロード時の位置</h1>
+        <p>
+            lng: <input type="text" id="loadlng" value=""><br>
+            lat: <input type="text" id="loadlat" value=""><br>
+        </p>
+        <h1>取得データ目標</h1>
+        <p>
+            lng: <input type="text" id="readtargetlng" value=""><br>
+            lat: <input type="text" id="readtargetlat" value=""><br>
+        </p>
+        <h1>取得データ開始位置</h1>
+        <p>
+            lng: <input type="text" id="readstartlng" value=""><br>
+            lat: <input type="text" id="readstartlat" value=""><br>
+        </p>
+        <h1>送信時の位置目標</h1>
+        <p>
+            lng: <input type="text" id="sendtargetlng" value=""><br>
+            lat: <input type="text" id="sendtargetlat" value=""><br>
+        </p>
+        <h1>送信時の位置開始</h1>
+        <p>
+            lng: <input type="text" id="sendstartlng" value=""><br>
+            lat: <input type="text" id="sendstartlat" value=""><br>
+        </p>
         
         <script src="default.js"></script>
     </body>
